@@ -13,7 +13,11 @@
 	</noscript>
 
 	<nav>
-		<a href=".." class="back-button">Back to home page</a>
+		<div class="back-button">
+			<a href="..">Back to home page</a>
+			<br>
+			<a href="https://github.com/Epicpkmn11/nftr-editor">View source on GitHub</a>
+		</div>
 	</nav>
 
 	<main>
@@ -21,8 +25,8 @@
 		<h1>NFTR Editor</h1>
 	
 		<div>
-			Select a font:
-			<input type="file" accept=".nftr" onchange="loadFont(this.files[0])" >
+			<label for="fileSelector">Select a font:</label>
+			<input id="fileSelector" type="file" accept=".nftr" onchange="loadFont(this.files[0])" >
 			<input type="button" onclick="saveFont()" value="Save">
 	
 			<label for="palette0">Palette 0</label>
@@ -40,15 +44,17 @@
 			<canvas id="canvas"></canvas>
 			
 			<div>
-				<input id="letterInput" type="text" onkeyup="loadLetter()" placeholder="Letter">
-				<input id="brushColor" type="number" onchange="updateBrush()" placeholder="Brush color">
+				<label for="letterInput">Letter</label>
+				<input id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
+				<label for="brushColor">Brush color</label>
+				<input id="brushColor" type="number" min="0" max="3" onchange="updateBrush()">
 				
-				<label for="left">Left spacing</label>
-				<input id="left" type="number">
-				<label for="bitmapWidth">Bitmap width</label>
-				<input id="bitmapWidth" type="number">
-				<label for="totalWidth">Total width</label>
-				<input id="totalWidth" type="number">
+				<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
+				<input id="left" type="number" min="0" onchange="updateWidths()">
+				<label for="bitmapWidth"><abbr title="The width of just the letter graphic">Bitmap width</abbr></label>
+				<input id="bitmapWidth" type="number" min="0" onchange="updateWidths()">
+				<label for="totalWidth"><abbr title="The total width, including left and right spacing">Total width</abbr></label>
+				<input id="totalWidth" type="number" min="0" onchange="updateWidths()">
 
 				<input type="button" onclick="saveLetter()" value="Save">
 				<br>

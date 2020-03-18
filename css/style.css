@@ -1,3 +1,7 @@
+abbr {
+	border-bottom: 1px dotted black;
+}
+
 canvas {
 	border: 1px solid gray;
 }
@@ -36,4 +40,5 @@ table td {
 .back-button {
 	position: absolute;
 	right: 10px;
+	text-align: right;
 }

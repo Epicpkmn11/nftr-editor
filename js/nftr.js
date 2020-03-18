@@ -217,19 +217,65 @@ function loadLetter() {
 		charImg[(i * 4) + 3] = (fontTiles[i + (t * tileSize)]      & 3);
 	}
 
-	let output = "";
+	document.getElementById("letter").innerHTML = "";
+
+	let row;
 	for(let y = 0; y < tileHeight; y++) {
-		output += "<tr>"
+		row = document.createElement("tr");
 		for(let x = 0; x < tileWidth; x++) {
-			output += "<td id='pixel" + ((y * tileWidth) + x) + "' class='" + charImg[(y * tileWidth) + x] + "'style='background-color:" + paletteHTML[charImg[(y * tileWidth) + x]] + ";' onclick='drawLetter(" + ((y * tileWidth) + x) + ")'></td>";
+			let item = document.createElement("td");
+			item.id = "pixel" + ((y * tileWidth) + x);
+			console.log(item.id);
+			item.classList = charImg[(y * tileWidth) + x];
+			item.style.backgroundColor = paletteHTML[charImg[(y * tileWidth) + x]];
+			item.onclick = "drawLetter(" + ((y * tileWidth) + x) + ")";
+			if(x == (fontWidths[(t * 3) + 2] - fontWidths[(t * 3)])) {
+				item.style.borderLeft = "1px solid red";
+			} else if(x == fontWidths[(t * 3) + 1]) {
+				item.style.borderLeft = "1px solid blue";
+			}
+			row.appendChild(item);
 		}
-		output += "</tr>"
+		document.getElementById("letter").appendChild(row);
 	}
 
-	document.getElementById("letter").innerHTML = output;
+	// If the last column is colored, apply it to the table itself
+	if((fontWidths[(t * 3) + 2] - fontWidths[(t * 3)]) == tileWidth) {
+		document.getElementById("letter").style.borderRight = "1px solid red";
+	} else if(fontWidths[(t * 3) + 1] == tileWidth) {
+		document.getElementById("letter").style.borderRight = "1px solid blue";
+	} else {
+		document.getElementById("letter").style.borderRight = "";
+	}
+
 	document.getElementById("left").value = fontWidths[(t * 3)];
+	document.getElementById("left").max = tileWidth;
 	document.getElementById("bitmapWidth").value = fontWidths[(t * 3) + 1];
+	document.getElementById("bitmapWidth").max = tileWidth;
 	document.getElementById("totalWidth").value = fontWidths[(t * 3) + 2];
+	document.getElementById("totalWidth").max = tileWidth;
+}
+
+function updateWidths() {
+	let t = getCharIndex(document.getElementById("letterInput").value);
+	for(let i = 0; i < tileWidth * tileHeight; i++) {
+		if((i % tileWidth) == (document.getElementById("totalWidth").value - document.getElementById("left").value)) {
+			document.getElementById("pixel" + i).style.borderLeft = "1px solid red";
+		} else if((i % tileWidth) == document.getElementById("bitmapWidth").value) {
+			document.getElementById("pixel" + i).style.borderLeft = "1px solid blue";
+		} else {
+			document.getElementById("pixel" + i).style.borderLeft = "";
+		}
+	}
+
+	// If the last column is colored, apply it to the table itself
+	if((document.getElementById("totalWidth").value - document.getElementById("left").value) == tileWidth) {
+		document.getElementById("letter").style.borderRight = "1px solid red";
+	} else if(document.getElementById("bitmapWidth").value == tileWidth) {
+		document.getElementById("letter").style.borderRight = "1px solid blue";
+	} else {
+		document.getElementById("letter").style.borderRight = "";
+	}
 }
 
 function brushColor() {
