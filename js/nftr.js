@@ -1,19 +1,22 @@
 let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = 0;
 let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0x28, 0x28, 0x28, 0xFF]];
+let paletteHTML = ["", "#282828", "#909090", "#282828"];
+let data, fontU8, fileName;
 
 function loadFont(file) {
 	if(!file) {
 		alert("No file selected!");
-		document.getElementById("input").style.display = "none";
-		document.getElementById("canvas").style.display = "none";
+		document.getElementById("hidden").style.display = "none";
 		return false;
 	}
-
-	let reader = new FileReader()
+	fileName = file.name;
+	
+	let reader = new FileReader();
 	reader.readAsArrayBuffer(file);
-
+	
 	reader.onload = function() {
-		let data = new DataView(this.result);
+		data = new DataView(this.result);
+		fontU8 = new Uint8Array(this.result);
 		let offset = 0x14;
 
 		// Skip font info
@@ -89,11 +92,31 @@ function loadFont(file) {
 				}
 			}
 		}
-		document.getElementById("input").style.display = "";
-		document.getElementById("canvas").style.display = "";
+		document.getElementById("hidden").style.display = "";
 		questionMark = getCharIndex("?");
 		updateBitmap();
 	}
+}
+
+function saveFont() {
+	// Copy glyphs back in
+	let offset = data.getUint32(0x20, true) + 8;
+	fontU8.set(fontTiles, offset);
+
+	// Copy widths back in
+	offset = data.getUint32(0x24, true) + 8;
+	fontU8.set(fontWidths, offset);
+
+	// Download the file
+	let blob = new Blob([fontU8], {type: "application/octet-stream"});
+	let a = document.createElement('a');
+	a.style.display = "none";
+	document.body.appendChild(a);
+	let url = window.URL.createObjectURL(blob);
+	a.href = url;
+	a.download = fileName;
+	a.click();
+	window.URL.revokeObjectURL(url);
 }
 
 function getCharIndex(c) {
@@ -164,11 +187,84 @@ function updatePalette(i) {
 	let color = document.getElementById("palette" + i).value;
 	if(color.toUpperCase() == "#FF00FF") {
 		palette[i] = [0, 0, 0, 0];
+		paletteHTML[i] = "";
 	} else {
 		let r = parseInt(color.substr(1, 2), 16);
 		let g = parseInt(color.substr(3, 2), 16);
 		let b = parseInt(color.substr(5, 2), 16);
 		palette[i] = [r, g, b, 0xFF];
+		paletteHTML[i] = color;
 	}
+	updateBitmap();
+}
+
+function loadLetter() {
+	let char = document.getElementById("letterInput").value;
+	console.log(char);
+	let t = getCharIndex(char);
+	if(t == questionMark && char[0] != "?") {
+		document.getElementById("letter").innerHTML = "";
+		document.getElementById("left").value = 0;
+		document.getElementById("bitmapWidth").value = 0;
+		document.getElementById("totalWidth").value = 0;
+		return;
+	}
+	let charImg = new Array(tileHeight * tileWidth);
+	for(let i = 0; i < tileSize; i++) {
+		charImg[(i * 4)]     = (fontTiles[i + (t * tileSize)] >> 6 & 3);
+		charImg[(i * 4) + 1] = (fontTiles[i + (t * tileSize)] >> 4 & 3);
+		charImg[(i * 4) + 2] = (fontTiles[i + (t * tileSize)] >> 2 & 3);
+		charImg[(i * 4) + 3] = (fontTiles[i + (t * tileSize)]      & 3);
+	}
+
+	let output = "";
+	for(let y = 0; y < tileHeight; y++) {
+		output += "<tr>"
+		for(let x = 0; x < tileWidth; x++) {
+			output += "<td id='pixel" + ((y * tileWidth) + x) + "' class='" + charImg[(y * tileWidth) + x] + "'style='background-color:" + paletteHTML[charImg[(y * tileWidth) + x]] + ";' onclick='drawLetter(" + ((y * tileWidth) + x) + ")'></td>";
+		}
+		output += "</tr>"
+	}
+
+	document.getElementById("letter").innerHTML = output;
+	document.getElementById("left").value = fontWidths[(t * 3)];
+	document.getElementById("bitmapWidth").value = fontWidths[(t * 3) + 1];
+	document.getElementById("totalWidth").value = fontWidths[(t * 3) + 2];
+}
+
+function brushColor() {
+	return document.getElementById("brushColor").value;
+}
+
+function updateBrush() {
+	document.getElementById("brushColor").style.backgroundColor = paletteHTML[brushColor()];
+}
+
+function drawLetter(i) {
+	document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[brushColor()];
+	document.getElementById("pixel" + i).classList = brushColor();
+}
+
+function saveLetter() {
+	let char = document.getElementById("letterInput").value;
+	let t = getCharIndex(char);
+
+	if(t == questionMark && char[0] != "?")	return;
+
+	for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+		let byte = 0;
+		console.log("i=" + i)
+		byte |= (document.getElementById("pixel" + i).classList[0]) << 6;
+		byte |= (document.getElementById("pixel" + (i + 1)).classList[0] & 3) << 4;
+		byte |= (document.getElementById("pixel" + (i + 2)).classList[0] & 3) << 2;
+		byte |= (document.getElementById("pixel" + (i + 3)).classList[0] & 3) << 0;
+
+		fontTiles[(i/4) + (t * tileSize)] = byte;
+	}
+
+	fontWidths[(t * 3)] = document.getElementById("left").value;
+	fontWidths[(t * 3) + 1] = document.getElementById("bitmapWidth").value;
+	fontWidths[(t * 3) + 2] = document.getElementById("totalWidth").value;
+
 	updateBitmap();
 }

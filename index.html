@@ -18,11 +18,12 @@
 
 	<main>
 		
-		<h1>NFTR Editor <small>(actually just a viewer for now)</small></h1>
+		<h1>NFTR Editor</h1>
 	
 		<div>
 			Select a font:
 			<input type="file" accept=".nftr" onchange="loadFont(this.files[0])" >
+			<input type="button" onclick="saveFont()" value="Save">
 	
 			<label for="palette0">Palette 0</label>
 			<input id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
@@ -32,11 +33,28 @@
 			<input id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
 			<label for="palette3">Palette 3</label>
 			<input id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
-			<br>
-			<textarea id="input" style="display: none;" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
 		</div>
-	
-		<canvas id="canvas" style="display: none;"></canvas>
+		<div id="hidden" style="display: none;">
+			<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
+			<br>
+			<canvas id="canvas"></canvas>
+			
+			<div>
+				<input id="letterInput" type="text" onkeyup="loadLetter()" placeholder="Letter">
+				<input id="brushColor" type="number" onchange="updateBrush()" placeholder="Brush color">
+				
+				<label for="left">Left spacing</label>
+				<input id="left" type="number">
+				<label for="bitmapWidth">Bitmap width</label>
+				<input id="bitmapWidth" type="number">
+				<label for="totalWidth">Total width</label>
+				<input id="totalWidth" type="number">
+
+				<input type="button" onclick="saveLetter()" value="Save">
+				<br>
+				<table id="letter"></table>
+			</div>
+		</div>
 	</main>
 
 	<script src="js/nftr.js"></script>

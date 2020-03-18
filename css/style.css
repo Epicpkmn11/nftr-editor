@@ -5,12 +5,23 @@ canvas {
 textarea {
 	border: 1px solid gray;
 	width: 296px;
-	height: 150px;
+	height: 146px;
 	resize: none;
 }
 
 small {
 	font-size: 50%;
+}
+
+table {
+	border-collapse: collapse;
+	border: 1px solid black;
+}
+
+table td {
+	width: 10px;
+	height: 10px;
+	border: 1px dashed black;
 }
 
 .top-banner {
