@@ -20,6 +20,11 @@ small {
 table {
 	border-collapse: collapse;
 	border: 1px solid black;
+	cursor: crosshair;
+}
+
+table:active {
+	cursor: crosshair;
 }
 
 table td {

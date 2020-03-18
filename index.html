@@ -42,8 +42,11 @@
 			<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
 			<br>
 			<canvas id="canvas"></canvas>
+
 			
 			<div>
+				<input type="button" onclick="addCharacters()" value="Add characters">
+				<br>
 				<label for="letterInput">Letter</label>
 				<input id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
 				<label for="brushColor">Brush color</label>
