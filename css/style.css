@@ -21,3 +21,8 @@ small {
 	text-align: center;
 	position: absolute;
 }
+
+.back-button {
+	position: absolute;
+	right: 10px;
+}
