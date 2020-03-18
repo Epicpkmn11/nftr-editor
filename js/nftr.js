@@ -228,7 +228,7 @@ function loadLetter() {
 			console.log(item.id);
 			item.classList = charImg[(y * tileWidth) + x];
 			item.style.backgroundColor = paletteHTML[charImg[(y * tileWidth) + x]];
-			item.onclick = "drawLetter(" + ((y * tileWidth) + x) + ")";
+			item.onclick = function() { drawLetter((y * tileWidth) + x); };
 			if(x == (fontWidths[(t * 3) + 2] - fontWidths[(t * 3)])) {
 				item.style.borderLeft = "1px solid red";
 			} else if(x == fontWidths[(t * 3) + 1]) {
