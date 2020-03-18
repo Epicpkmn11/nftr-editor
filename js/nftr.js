@@ -6,14 +6,15 @@ let data, fontU8, fileName;
 function loadFont(file) {
 	if(!file) {
 		alert("No file selected!");
-		document.getElementById("hidden").style.display = "none";
+		$("#saveButton").collapse("hide");
+		$("#editBox").collapse("hide");
 		return false;
 	}
 	fileName = file.name;
-	
+
 	let reader = new FileReader();
 	reader.readAsArrayBuffer(file);
-	
+
 	reader.onload = function() { reloadFont(this.result); };
 }
 
@@ -95,7 +96,8 @@ function reloadFont(buffer) {
 			}
 		}
 	}
-	document.getElementById("hidden").style.display = "";
+	$("#saveButton").collapse("show");
+	$("#editBox").collapse("show");
 	questionMark = getCharIndex("?");
 	updateBitmap();
 }
@@ -159,7 +161,7 @@ function updateBitmap() {
 			continue;
 		}
 		let imgData = ctx.createImageData(tileWidth, tileHeight);
-	
+
 		let t = getCharIndex(c);
 		let charImg = new Array(tileHeight * tileWidth);
 		for(let i = 0; i < tileSize; i++) {
@@ -168,14 +170,14 @@ function updateBitmap() {
 			charImg[(i * 4) + 2] = (fontTiles[i + (t * tileSize)] >> 2 & 3);
 			charImg[(i * 4) + 3] = (fontTiles[i + (t * tileSize)]      & 3);
 		}
-	
+
 		for(let i = 0; i < imgData.data.length / 4; i++) {
 			imgData.data[i * 4]     = palette[charImg[i]][0];
 			imgData.data[i * 4 + 1] = palette[charImg[i]][1];
 			imgData.data[i * 4 + 2] = palette[charImg[i]][2];
 			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
 		}
-	
+
 		if(x + fontWidths[(t * 3) + 2] > canvas.width) {
 			y += tileHeight;
 			x = 0;
@@ -198,6 +200,7 @@ function updatePalette(i) {
 		paletteHTML[i] = color;
 	}
 	updateBitmap();
+	updateBrush();
 }
 
 function loadLetter() {
@@ -285,6 +288,14 @@ function brushColor() {
 
 function updateBrush() {
 	document.getElementById("brushColor").style.backgroundColor = paletteHTML[brushColor()];
+	if(paletteHTML[brushColor()]) {
+		let r = 0xFF - parseInt(paletteHTML[brushColor()].substr(1, 2), 16);
+		let g = 0xFF - parseInt(paletteHTML[brushColor()].substr(3, 2), 16);
+		let b = 0xFF - parseInt(paletteHTML[brushColor()].substr(5, 2), 16);
+		document.getElementById("brushColor").style.color = "#" + r.toString(16).padStart(2, "0") + g.toString(16).padStart(2, "0") + b.toString(16).padStart(2, "0");
+	} else {
+		document.getElementById("brushColor").style.color = "";
+	}
 }
 
 function drawLetter(i) {
@@ -334,18 +345,18 @@ function addCharacters() {
 
 	// Increase chunk size
 	data.setUint32(0x30, data.getUint32(0x30, true) + amountToIncrease(chars.length, true, false), true);
-	
+
 	// Copy through glyphs
 	let locHDWC = data.getUint32(0x24, true);
 	newFile.set(fontU8.subarray(0, locHDWC - 8), 0);
 	let newLocHDWC = locHDWC + amountToIncrease(chars.length, true, false);
-	
+
 	// Increase chunk size
 	data.setUint32(locHDWC - 4, data.getUint32(locHDWC - 4, true) + amountToIncrease(chars.length, false, true), true);
-	
+
 	// Increase HDWC offset
 	newData.setUint32(0x24, newLocHDWC, true);
-	
+
 	// Copy widths
 	let locPAMC = data.getUint32(0x28, true)
 	newFile.set(fontU8.subarray(locHDWC - 8, locPAMC - 8), newLocHDWC - 8);
@@ -405,7 +416,7 @@ function addCharacters() {
 
 	fontU8 = newFile;
 	data = newData;
-	
+
 	reloadFont(fontU8.buffer);
 }
 
@@ -413,7 +424,6 @@ function amountToIncrease(increaseAmount, tiles, widths) {
 	let out = 0;
 	if(tiles)	out += increaseAmount * tileSize;
 	if(widths)	out += increaseAmount * 3;
-	// if(maps)	out += increaseAmount * 4;
 
 	while(out % 4)	out++;
 	return out;

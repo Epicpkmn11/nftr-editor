@@ -3,69 +3,117 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 	<title>NFTR Editor</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-	<noscript>
-		<div class="top-banner">
-			<h3>This site requires JavaScript!</h3>
-		</div>
-	</noscript>
-
-	<nav>
-		<div class="back-button">
-			<a href="..">Back to home page</a>
-			<br>
-			<a href="https://github.com/Epicpkmn11/nftr-editor">View source on GitHub</a>
+	<nav class="navbar navbar-expand-sm navbar-light bg-light">
+		<div class="container-fluid maxwidth">
+			<nav class="navbar navbar-light bg-light">
+				<span class="navbar-brand mb-0 h1">NFTR Editor</span>
+			</nav>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link" href="..">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="https://github.com/Epicpkmn11/nftr-editor">Source</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</nav>
-
 	<main>
-		
-		<h1>NFTR Editor</h1>
-	
-		<div>
-			<label for="fileSelector">Select a font:</label>
-			<input id="fileSelector" type="file" accept=".nftr" onchange="loadFont(this.files[0])" >
-			<input type="button" onclick="saveFont()" value="Save">
-	
-			<label for="palette0">Palette 0</label>
-			<input id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
-			<label for="palette1">Palette 1</label>
-			<input id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
-			<label for="palette2">Palette 2</label>
-			<input id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
-			<label for="palette3">Palette 3</label>
-			<input id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
-		</div>
-		<div id="hidden" style="display: none;">
-			<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
-			<br>
-			<canvas id="canvas"></canvas>
+		<div class="container-fluid">
+			<noscript>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="p-2 col-sm-12 bg-danger rounded text-center">
+							<h3>This site requires JavaScript!</h3>
+						</div>
+					</div>
+				</div>
+			</noscript>
+			<div class="row">
+				<div class="col-sm-12">
+					<h2>Select a font:</h2>
+					<div class="input-group mb-3">
+						<div class="custom-file">
+							<label class="custom-file-label" for="fileSelector">Select a font</label>
+							<input class="custom-file-input" id="fileSelector" type="file" accept=".nftr" onchange="loadFont(this.files[0])">
+						</div>
+						<div class="input-group-append">
+							<input class="btn btn-outline-secondary collapse" id="saveButton" type="button" onclick="saveFont()" value="Save">
+						</div>
+					</div>
 
-			
-			<div>
-				<input type="button" onclick="addCharacters()" value="Add characters">
-				<br>
-				<label for="letterInput">Letter</label>
-				<input id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
-				<label for="brushColor">Brush color</label>
-				<input id="brushColor" type="number" value="0" min="0" max="3" onchange="updateBrush()">
-				
-				<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
-				<input id="left" type="number" min="0" onchange="updateWidths()">
-				<label for="bitmapWidth"><abbr title="The width of just the letter graphic">Bitmap width</abbr></label>
-				<input id="bitmapWidth" type="number" min="0" onchange="updateWidths()">
-				<label for="totalWidth"><abbr title="The total width, including left and right spacing">Total width</abbr></label>
-				<input id="totalWidth" type="number" min="0" onchange="updateWidths()">
+				</div>
+			</div>
+			<div class="row collapse" id="editBox">
+				<div class="col-sm-6">
+					<h2>Preview</h2>
+					<div class="row">
+						<div class="col-sm-6">
+							<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
+							<br>
+							<canvas id="canvas"></canvas>
+						</div>
+						<div class="col-sm-6">
+							<h3>Palette colors:</h3>
+							<label for="palette0">Palette 0</label>
+							<input id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
+							<br>
+							<label for="palette1">Palette 1</label>
+							<input id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
+							<br>
+							<label for="palette2">Palette 2</label>
+							<input id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
+							<br>
+							<label for="palette3">Palette 3</label>
+							<input id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-6">
+				<h2>Letter editing</h2>
+				<div class="row">
+					<div class="col-sm-6">
+						<label for="letterInput">Letter</label>
+						<input class="form-control" id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
+						<br>
+						<table id="letter"></table>
+						<br>
+						<input class="btn btn-outline-secondary" type="button" onclick="addCharacters()" value="Add characters">
+					</div>
+					<div class="col-sm-6">
+						<label for="brushColor">Brush color</label>
+						<input class="form-control" id="brushColor" type="number" value="0" min="0" max="3" onchange="updateBrush()">
+						<br>
+						<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
+						<input class="form-control" id="left" type="number" min="0" onchange="updateWidths()">
+						<br>
+						<label for="bitmapWidth"><abbr title="The width of just the letter graphic">Bitmap width</abbr></label>
+						<input class="form-control" id="bitmapWidth" type="number" min="0" onchange="updateWidths()">
+						<br>
+						<label for="totalWidth"><abbr title="The total width, including left and right spacing">Total width</abbr></label>
+						<input class="form-control" id="totalWidth" type="number" min="0" onchange="updateWidths()">
+						<br>
+						<input class="btn btn-outline-secondary" type="button" onclick="saveLetter()" value="Save">
+					</div>
+				</div>
 
-				<input type="button" onclick="saveLetter()" value="Save">
-				<br>
-				<table id="letter"></table>
+				</div>
 			</div>
 		</div>
 	</main>
 
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 	<script src="js/nftr.js"></script>
 </body>
 </html>
