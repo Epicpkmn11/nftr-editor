@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>NFTR Editor</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<noscript>
+		<div class="top-banner">
+			<h3>This site requires JavaScript!</h3>
+		</div>
+	</noscript>
+
+	<main>
+		
+		<h1>NFTR Editor <small>(actually just a viewer for now)</small></h1>
+	
+		<div>
+			Select a font:
+			<input type="file" accept=".nftr" onchange="loadFont(this.files[0])" >
+	
+			<label for="palette0">Palette 0</label>
+			<input id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
+			<label for="palette1">Palette 1</label>
+			<input id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
+			<label for="palette2">Palette 2</label>
+			<input id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
+			<label for="palette3">Palette 3</label>
+			<input id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
+			<br>
+			<textarea id="input" style="display: none;" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
+		</div>
+	
+		<canvas id="canvas" style="display: none;"></canvas>
+	</main>
+
+	<script src="js/nftr.js"></script>
+</body>
+</html>
