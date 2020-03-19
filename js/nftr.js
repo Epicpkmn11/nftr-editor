@@ -57,7 +57,7 @@ function reloadFont(buffer) {
 	fontMap = new Uint16Array(tileAmount);
 	let locPAMC = data.getUint32(0x28, true);
 
-	while(locPAMC < fontU8.length) {
+	while(locPAMC < fontU8.length && locPAMC != 0) {
 		offset = locPAMC;
 		let firstChar = data.getUint16(offset, true);
 		offset += 2;
@@ -346,7 +346,7 @@ function addCharacters() {
 	let newData = new DataView(newFile.buffer);
 
 	// Increase chunk size
-	data.setUint32(0x30, data.getUint32(0x30, true) + amountToIncrease(chars.length, true, false), true);
+	data.setUint32(0x34, data.getUint32(0x34, true) + amountToIncrease(chars.length, true, false), true);
 
 	// Copy through glyphs
 	let locHDWC = data.getUint32(0x24, true);
@@ -376,9 +376,11 @@ function addCharacters() {
 	let lastPAMC;
 
 	// Increase character maps offsets
-	while(newLocPAMC < newFile.length) {
+	while(newLocPAMC < newFile.length && newLocPAMC != 0) {
 		lastPAMC = newLocPAMC;
 		let offset = newLocPAMC;
+		if(newData.getUint32(newLocPAMC + 8, true) == 0)
+			break;
 		newData.setUint32(newLocPAMC + 8, newData.getUint32(newLocPAMC + 8, true) + amountToIncrease(chars.length, true, true), true);
 		newLocPAMC = newData.getUint32(newLocPAMC + 8, true);
 	}
