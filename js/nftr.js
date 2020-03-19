@@ -98,6 +98,8 @@ function reloadFont(buffer) {
 	}
 	$("#saveButton").collapse("show");
 	$("#editBox").collapse("show");
+	document.getElementById("input").style.fontSize = tileWidth + "px";
+
 	questionMark = getCharIndex("?");
 	updateBitmap();
 }
