@@ -75,17 +75,20 @@
 						</div>
 						<div class="col-sm-6">
 							<h3>Palette colors:</h3>
-							<label for="palette0">Palette 0</label>
-							<input id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
+							<div class="btn-group brush-btn-box">
+								<input class="btn btn-outline-secondary" id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
+								<input class="btn btn-outline-secondary" id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
+								<input class="btn btn-outline-secondary" id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
+								<input class="btn btn-outline-secondary" id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
+							</div>
 							<br>
-							<label for="palette1">Palette 1</label>
-							<input id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
 							<br>
-							<label for="palette2">Palette 2</label>
-							<input id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
-							<br>
-							<label for="palette3">Palette 3</label>
-							<input id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
+							<div class="btn-group brush-btn-box">
+								<input class="btn btn-outline-secondary" type="button" value="Clear 1" onclick="clearPalette(0)">
+								<input class="btn btn-outline-secondary" type="button" value="Clear 2" onclick="clearPalette(1)">
+								<input class="btn btn-outline-secondary" type="button" value="Clear 3" onclick="clearPalette(2)">
+								<input class="btn btn-outline-secondary" type="button" value="Clear 4" onclick="clearPalette(3)">
+							</div>
 						</div>
 					</div>
 				</div>

@@ -101,6 +101,9 @@ function reloadFont(buffer) {
 	}
 	document.getElementById("input").style.fontSize = tileWidth + "px";
 	updateBrush(-1);
+	for(let i = 0; i < 4; i++) {
+		updatePalette(i);
+	}
 	$("#saveButton").collapse("show");
 	$("#editBox").collapse("show");
 
@@ -205,8 +208,24 @@ function updatePalette(i) {
 		palette[i] = [r, g, b, 0xFF];
 		paletteHTML[i] = color;
 	}
+
+	if(paletteHTML[i] == "") {
+		document.getElementById("palette" + i).style.backgroundColor = "gray";
+		document.getElementById("palette" + i).style.backgroundImage = "repeating-linear-gradient(135deg, transparent, transparent 5px, rgba(255,255,255,.5) 5px, rgba(255,255,255,.5) 10px)";
+	} else {
+		document.getElementById("palette" + i).style.backgroundColor =  paletteHTML[i];
+		document.getElementById("palette" + i).style.backgroundImage = "";
+	}
+
 	updateBitmap();
 	updateBrush(-1);
+	updateLetterPalette();
+}
+
+function clearPalette(i) {
+	console.log(i);
+	document.getElementById("palette" + i).value = "#FF00FF";
+	updatePalette(i);
 }
 
 function loadLetter() {
@@ -343,6 +362,15 @@ function drawLetter(i) {
 	if(event.buttons) {
 		document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[color];
 		document.getElementById("pixel" + i).classList = color;
+	}
+}
+
+function updateLetterPalette() {
+	if(document.getElementById("letter").hasChildNodes()) {
+		for(let i = 0; i < tileWidth * tileHeight; i++) {
+			let color = document.getElementById("pixel" + i).classList[0];
+			document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[color];
+		}
 	}
 }
 
