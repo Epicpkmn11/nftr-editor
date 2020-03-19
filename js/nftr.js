@@ -335,7 +335,11 @@ function addCharacters() {
 	str = str.split("").sort(function(a, b) { return a.charCodeAt(0) > b.charCodeAt(0); }).join("");
 	let chars = "";
 	for(let i in str) {
-		if(str[i] != str[i-1] && getCharIndex(str[i]) == questionMark && (str[i] != "?" || questionMark == -1) && str.charCodeAt(i) <= 0xFFFF) {
+		if(str[i] != str[i-1]
+		&& getCharIndex(str[i]) == questionMark
+		&& (str[i] != "?" || questionMark == -1)
+		&& str.charCodeAt(i) <= 0xFFFF
+		&& str.charAt(i) != '\n') {
 			chars += str[i];
 		}
 	}
