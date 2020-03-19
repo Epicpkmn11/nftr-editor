@@ -326,6 +326,7 @@ function updateBrush(color) {
 				document.getElementById("brushColor" + i).style.backgroundImage = "repeating-linear-gradient(135deg, transparent, transparent 5px, rgba(255,255,255,.5) 5px, rgba(255,255,255,.5) 10px)";
 			} else {
 				document.getElementById("brushColor" + i).style.backgroundColor =  paletteHTML[i];
+				document.getElementById("brushColor" + i).style.backgroundImage = "";
 			}
 		} else {
 			document.getElementById("brushColor" + i).style.backgroundColor = "";
