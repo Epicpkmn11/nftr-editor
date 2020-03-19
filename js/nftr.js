@@ -301,7 +301,7 @@ function updateBrush() {
 }
 
 function drawLetter(i) {
-	if(event.which) {
+	if(event.buttons) {
 		document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[brushColor()];
 		document.getElementById("pixel" + i).classList = brushColor();
 	}
