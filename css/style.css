@@ -28,3 +28,7 @@ table td {
 .row {
 	padding: 10px 0;
 }
+
+.brush-btn-box {
+	width: 100%;
+}

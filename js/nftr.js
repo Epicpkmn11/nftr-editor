@@ -2,6 +2,9 @@ let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMar
 let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0x28, 0x28, 0x28, 0xFF]];
 let paletteHTML = ["", "#282828", "#909090", "#282828"];
 let data, fontU8, fileName;
+let brushColor = 0, realColor = 0;
+
+var onkeydown, onkeyup;
 
 function loadFont(file) {
 	if(!file) {
@@ -96,9 +99,10 @@ function reloadFont(buffer) {
 			}
 		}
 	}
+	document.getElementById("input").style.fontSize = tileWidth + "px";
+	updateBrush(-1);
 	$("#saveButton").collapse("show");
 	$("#editBox").collapse("show");
-	document.getElementById("input").style.fontSize = tileWidth + "px";
 
 	questionMark = getCharIndex("?");
 	updateBitmap();
@@ -202,7 +206,7 @@ function updatePalette(i) {
 		paletteHTML[i] = color;
 	}
 	updateBitmap();
-	updateBrush();
+	updateBrush(-1);
 }
 
 function loadLetter() {
@@ -284,26 +288,60 @@ function updateWidths() {
 	}
 }
 
-function brushColor() {
-	return document.getElementById("brushColor").value;
+function keyListener(on) {
+	if(on) {
+		onkeydown = function(e) {
+			if(e.key == "Shift") {
+				realColor = brushColor;
+				updateBrush(0);
+			} else if(e.key >= 1 && e.key <= 4) {
+				updateBrush(event.key - 1);
+				realColor = brushColor;
+			}
+		}
+		
+		onkeyup = function(e) {
+			if(e.key == "Shift") {
+				brushColor = realColor;
+				updateBrush(brushColor);
+			}
+		}
+	} else {
+		onkeydown = function() {};
+		onkeyup = function() {};
+	}
 }
 
-function updateBrush() {
-	document.getElementById("brushColor").style.backgroundColor = paletteHTML[brushColor()];
-	if(paletteHTML[brushColor()]) {
-		let r = 0xFF - parseInt(paletteHTML[brushColor()].substr(1, 2), 16);
-		let g = 0xFF - parseInt(paletteHTML[brushColor()].substr(3, 2), 16);
-		let b = 0xFF - parseInt(paletteHTML[brushColor()].substr(5, 2), 16);
-		document.getElementById("brushColor").style.color = "#" + r.toString(16).padStart(2, "0") + g.toString(16).padStart(2, "0") + b.toString(16).padStart(2, "0");
-	} else {
-		document.getElementById("brushColor").style.color = "";
+function updateBrush(color) {
+	console.log("clr: " + color);
+	if(color > -1)
+		brushColor = color;
+	console.log(brushColor);
+
+	for(let i = 0; i < 4; i++) {
+		document.getElementById("brushColor" + i).style.borderColor = paletteHTML[i] ? paletteHTML[i] : "gray";
+		if(i == brushColor) {
+			if(paletteHTML[i] == "") {
+				document.getElementById("brushColor" + i).style.backgroundColor = "gray";
+				document.getElementById("brushColor" + i).style.backgroundImage = "repeating-linear-gradient(135deg, transparent, transparent 5px, rgba(255,255,255,.5) 5px, rgba(255,255,255,.5) 10px)";
+			} else {
+				document.getElementById("brushColor" + i).style.backgroundColor =  paletteHTML[i];
+			}
+		} else {
+			document.getElementById("brushColor" + i).style.backgroundColor = "";
+			document.getElementById("brushColor" + i).style.backgroundImage = "";
+		}
 	}
 }
 
 function drawLetter(i) {
+	let color = brushColor;
+	if(event.shiftKey) {
+		color = 0;
+	}
 	if(event.buttons) {
-		document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[brushColor()];
-		document.getElementById("pixel" + i).classList = brushColor();
+		document.getElementById("pixel" + i).style.backgroundColor = paletteHTML[color];
+		document.getElementById("pixel" + i).classList = color;
 	}
 }
 

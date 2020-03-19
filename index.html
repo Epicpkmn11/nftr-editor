@@ -16,6 +16,7 @@
 	<meta property="og:site_name" content="pk11.us">
 	<meta property="og:image" content="https://pk11.us/nftr-editor/icon.png">
 	<!-- SEO end -->
+	<style></style>
 </head>
 <body>
 	<nav class="navbar navbar-expand-sm navbar-light bg-light">
@@ -61,7 +62,6 @@
 							<input class="btn btn-outline-secondary collapse" id="saveButton" type="button" onclick="saveFont()" value="Save">
 						</div>
 					</div>
-
 				</div>
 			</div>
 			<div class="row collapse" id="editBox">
@@ -96,13 +96,19 @@
 						<label for="letterInput">Letter</label>
 						<input class="form-control" id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
 						<br>
-						<table id="letter"></table>
+						<table id="letter" onmouseenter="keyListener(true)" onmouseleave="keyListener(false)"></table>
 						<br>
 						<input class="btn btn-outline-secondary" type="button" onclick="addCharacters()" value="Add characters">
 					</div>
 					<div class="col-sm-6">
-						<label for="brushColor">Brush color</label>
-						<input class="form-control" id="brushColor" type="number" value="0" min="0" max="3" onchange="updateBrush()">
+						<label><abbr title="While mouse is over the letter image, hold Shift for color 1 or press 1 - 4 for the respective color">Brush color</abbr></label>
+						<div class="btn-group brush-btn-box">
+							<input class="btn" id="brushColor0" type="button" onclick="updateBrush(0)">
+							<input class="btn" id="brushColor1" type="button" onclick="updateBrush(1)">
+							<input class="btn" id="brushColor2" type="button" onclick="updateBrush(2)">
+							<input class="btn" id="brushColor3" type="button" onclick="updateBrush(3)">
+						</div>
+						<br>
 						<br>
 						<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
 						<input class="form-control" id="left" type="number" min="0" onchange="updateWidths()">
