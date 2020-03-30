@@ -11,6 +11,7 @@ function loadFont(file) {
 		alert("No file selected!");
 		$("#saveButton").collapse("hide");
 		$("#editBox").collapse("hide");
+		window.onbeforeunload = function() { return; };
 		return false;
 	}
 	fileName = file.name;
@@ -106,6 +107,7 @@ function reloadFont(buffer) {
 	}
 	$("#saveButton").collapse("show");
 	$("#editBox").collapse("show");
+	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsafed data will be lost!"}
 
 	questionMark = getCharIndex("?");
 	updateBitmap();
