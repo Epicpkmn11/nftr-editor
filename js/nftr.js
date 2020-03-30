@@ -107,7 +107,7 @@ function reloadFont(buffer) {
 	}
 	$("#saveButton").collapse("show");
 	$("#editBox").collapse("show");
-	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsafed data will be lost!"}
+	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsaved data will be lost!"; };
 
 	questionMark = getCharIndex("?");
 	updateBitmap();
