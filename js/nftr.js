@@ -1,6 +1,6 @@
 let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = -1;
-let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0x28, 0x28, 0x28, 0xFF]];
-let paletteHTML = ["", "#282828", "#909090", "#282828"];
+let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0xD7, 0xD7, 0xD7, 0xFF]];
+let paletteHTML = ["", "#282828", "#909090", "#D7D7D7"];
 let data, fontU8, fileName;
 let brushColor = 0, realColor = 0;
 
@@ -225,7 +225,6 @@ function updatePalette(i) {
 }
 
 function clearPalette(i) {
-	console.log(i);
 	document.getElementById("palette" + i).value = "#FF00FF";
 	updatePalette(i);
 }
@@ -334,10 +333,8 @@ function keyListener(on) {
 }
 
 function updateBrush(color) {
-	console.log("clr: " + color);
 	if(color > -1)
 		brushColor = color;
-	console.log(brushColor);
 
 	for(let i = 0; i < 4; i++) {
 		document.getElementById("brushColor" + i).style.borderColor = paletteHTML[i] ? paletteHTML[i] : "gray";
@@ -504,4 +501,52 @@ function amountToIncrease(increaseAmount, tiles, widths) {
 
 	while(out % 4)	out++;
 	return out;
+}
+
+function generateFromFont() {
+	let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
+	ctx.canvas.width = tileWidth;
+	ctx.canvas.height = tileHeight;
+	let font = prompt("Enter a font to use", document.getElementById("inputFont").value);
+	if(font == null)	return;
+	if(font == "")	font = "Sans-Serif";
+	ctx.font = tileWidth + "px " + font;
+
+	for(let char of fontMap) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.fillText(String.fromCharCode(char), 0, tileWidth);
+		let image = ctx.getImageData(0, 0, tileWidth, tileHeight);
+
+		let newBitmap = [];
+		for(let i = 3; i < image.data.length; i += 4) {
+			let colors = [];
+			colors.push(Math.sqrt(Math.pow(image.data[i] - palette[0][0], 2)));
+			for(let j = 1; j < 4; j++) {
+				colors.push(Math.sqrt(Math.pow(image.data[i] - (255 - palette[j][0]), 2)));
+			}
+			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+		}
+		let t = getCharIndex(String.fromCharCode(char));
+		if(t == questionMark && String.fromCharCode(char) != "?")	continue;
+
+		for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+			let byte = 0;
+			byte |= (newBitmap[i]     & 3) << 6;
+			byte |= (newBitmap[i + 1] & 3) << 4;
+			byte |= (newBitmap[i + 2] & 3) << 2;
+			byte |= (newBitmap[i + 3] & 3) << 0;
+
+			fontTiles[(i/4) + (t * tileSize)] = byte;
+		}
+
+		fontWidths[t * 3] = 0;
+		fontWidths[t * 3 + 1] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
+		fontWidths[t * 3 + 2] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
+	}
+	updateBitmap();
+}
+
+function updateFont() {
+	document.getElementById("input").style.fontFamily = document.getElementById("inputFont").value;
+	document.getElementById("letterInput").style.fontFamily = document.getElementById("inputFont").value;
 }

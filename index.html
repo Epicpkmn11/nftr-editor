@@ -79,7 +79,7 @@
 								<input class="btn btn-outline-secondary" id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
 								<input class="btn btn-outline-secondary" id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
 								<input class="btn btn-outline-secondary" id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
-								<input class="btn btn-outline-secondary" id="palette3" type="color" value="#282828" onchange="updatePalette(3)">
+								<input class="btn btn-outline-secondary" id="palette3" type="color" value="#D7D7D7" onchange="updatePalette(3)">
 							</div>
 							<br>
 							<br>
@@ -89,6 +89,13 @@
 								<input class="btn btn-outline-secondary" type="button" value="Clear 3" onclick="clearPalette(2)">
 								<input class="btn btn-outline-secondary" type="button" value="Clear 4" onclick="clearPalette(3)">
 							</div>
+							<br>
+							<br>
+							<h3>Font:</h3>
+							<label for="inputFont">Input font</label>
+							<input class="form-control" id="inputFont" type="text" placeholder="Sans-Serif" onchange="updateFont()">
+							<br>
+							<button class="btn btn-outline-secondary" type="button" onclick="generateFromFont()">Generate from font</button>
 						</div>
 					</div>
 				</div>
