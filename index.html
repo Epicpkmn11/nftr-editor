@@ -64,75 +64,102 @@
 					</div>
 				</div>
 			</div>
-			<div class="row collapse" id="editBox">
-				<div class="col-sm-6">
-					<h2>Preview</h2>
-					<div class="row">
-						<div class="col-sm-6">
-							<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
-							<br>
-							<canvas id="canvas"></canvas>
+			<div class="collapse" id="editBox">
+				<div class="row">
+
+					<div class="col-sm-6">
+						<h2>Preview</h2>
+						<div class="row">
+							<div class="col-sm-6">
+								<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
+								<br>
+								<canvas id="canvas"></canvas>
+							</div>
+							<div class="col-sm-6">
+								<h3>Palette colors:</h3>
+								<div class="btn-group brush-btn-box">
+									<input class="btn btn-outline-secondary" id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
+									<input class="btn btn-outline-secondary" id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
+									<input class="btn btn-outline-secondary" id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
+									<input class="btn btn-outline-secondary" id="palette3" type="color" value="#D7D7D7" onchange="updatePalette(3)">
+								</div>
+								<br>
+								<br>
+								<div class="btn-group brush-btn-box">
+									<input class="btn btn-outline-secondary" type="button" value="Clear 1" onclick="clearPalette(0)">
+									<input class="btn btn-outline-secondary" type="button" value="Clear 2" onclick="clearPalette(1)">
+									<input class="btn btn-outline-secondary" type="button" value="Clear 3" onclick="clearPalette(2)">
+									<input class="btn btn-outline-secondary" type="button" value="Clear 4" onclick="clearPalette(3)">
+								</div>
+								<br>
+								<br>
+								<h3>Font:</h3>
+								<label for="inputFont">Input font</label>
+								<input class="form-control" id="inputFont" type="text" placeholder="Sans-Serif" onchange="updateFont()">
+								<br>
+								<button class="btn btn-outline-secondary" type="button" onclick="generateFromFont()">Generate from font</button>
+							</div>
 						</div>
-						<div class="col-sm-6">
-							<h3>Palette colors:</h3>
-							<div class="btn-group brush-btn-box">
-								<input class="btn btn-outline-secondary" id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
-								<input class="btn btn-outline-secondary" id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
-								<input class="btn btn-outline-secondary" id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
-								<input class="btn btn-outline-secondary" id="palette3" type="color" value="#D7D7D7" onchange="updatePalette(3)">
+					</div>
+					<div class="col-sm-6">
+						<h2>Letter editing</h2>
+						<div class="row">
+							<div class="col-sm-6">
+								<label for="letterInput">Letter</label>
+								<input class="form-control" id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
+								<br>
+								<table id="letter" onmouseenter="keyListener(true)" onmouseleave="keyListener(false)"></table>
+								<br>
+								<input class="btn btn-outline-secondary" type="button" onclick="addCharacters()" value="Add characters">
 							</div>
-							<br>
-							<br>
-							<div class="btn-group brush-btn-box">
-								<input class="btn btn-outline-secondary" type="button" value="Clear 1" onclick="clearPalette(0)">
-								<input class="btn btn-outline-secondary" type="button" value="Clear 2" onclick="clearPalette(1)">
-								<input class="btn btn-outline-secondary" type="button" value="Clear 3" onclick="clearPalette(2)">
-								<input class="btn btn-outline-secondary" type="button" value="Clear 4" onclick="clearPalette(3)">
+							<div class="col-sm-6">
+								<label><abbr title="While mouse is over the letter image, hold Shift for color 1 or press 1 - 4 for the respective color">Brush color</abbr></label>
+								<div class="btn-group brush-btn-box">
+									<input class="btn" id="brushColor0" type="button" onclick="updateBrush(0)">
+									<input class="btn" id="brushColor1" type="button" onclick="updateBrush(1)">
+									<input class="btn" id="brushColor2" type="button" onclick="updateBrush(2)">
+									<input class="btn" id="brushColor3" type="button" onclick="updateBrush(3)">
+								</div>
+								<br>
+								<br>
+								<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
+								<input class="form-control" id="left" type="number" min="0" onchange="updateWidths()">
+								<br>
+								<label for="bitmapWidth"><abbr title="The width of just the letter graphic">Bitmap width</abbr></label>
+								<input class="form-control" id="bitmapWidth" type="number" min="0" onchange="updateWidths()">
+								<br>
+								<label for="totalWidth"><abbr title="The total width, including left and right spacing">Total width</abbr></label>
+								<input class="form-control" id="totalWidth" type="number" min="0" onchange="updateWidths()">
+								<br>
+								<input class="btn btn-outline-secondary" type="button" onclick="saveLetter()" value="Save">
 							</div>
-							<br>
-							<br>
-							<h3>Font:</h3>
-							<label for="inputFont">Input font</label>
-							<input class="form-control" id="inputFont" type="text" placeholder="Sans-Serif" onchange="updateFont()">
-							<br>
-							<button class="btn btn-outline-secondary" type="button" onclick="generateFromFont()">Generate from font</button>
 						</div>
 					</div>
 				</div>
-				<div class="col-sm-6">
-				<h2>Letter editing</h2>
 				<div class="row">
 					<div class="col-sm-6">
-						<label for="letterInput">Letter</label>
-						<input class="form-control" id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
-						<br>
-						<table id="letter" onmouseenter="keyListener(true)" onmouseleave="keyListener(false)"></table>
-						<br>
-						<input class="btn btn-outline-secondary" type="button" onclick="addCharacters()" value="Add characters">
+						<h2>Import</h2>
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="custom-file">
+									<label class="custom-file-label" for="fileSelector">Import image</label>
+									<input class="custom-file-input" id="fileSelector" type="file" accept="image/*" onchange="importImage(this.files[0])">
+								</div>
+							</div>
+							<br><br>
+							<div class="col-sm-6">
+								<div class="custom-file">
+									<label class="custom-file-label" for="fileSelector">Import sizes</label>
+									<input class="custom-file-input" id="fileSelector" type="file" accept="application/json" onchange="importSizes(this.files[0])">
+								</div>
+							</div>
+						</div>
 					</div>
 					<div class="col-sm-6">
-						<label><abbr title="While mouse is over the letter image, hold Shift for color 1 or press 1 - 4 for the respective color">Brush color</abbr></label>
-						<div class="btn-group brush-btn-box">
-							<input class="btn" id="brushColor0" type="button" onclick="updateBrush(0)">
-							<input class="btn" id="brushColor1" type="button" onclick="updateBrush(1)">
-							<input class="btn" id="brushColor2" type="button" onclick="updateBrush(2)">
-							<input class="btn" id="brushColor3" type="button" onclick="updateBrush(3)">
-						</div>
-						<br>
-						<br>
-						<label for="left"><abbr title="Whitespace to the left of the letter (the graphic should be fully agaist the left)">Left spacing</abbr></label>
-						<input class="form-control" id="left" type="number" min="0" onchange="updateWidths()">
-						<br>
-						<label for="bitmapWidth"><abbr title="The width of just the letter graphic">Bitmap width</abbr></label>
-						<input class="form-control" id="bitmapWidth" type="number" min="0" onchange="updateWidths()">
-						<br>
-						<label for="totalWidth"><abbr title="The total width, including left and right spacing">Total width</abbr></label>
-						<input class="form-control" id="totalWidth" type="number" min="0" onchange="updateWidths()">
-						<br>
-						<input class="btn btn-outline-secondary" type="button" onclick="saveLetter()" value="Save">
+						<h2>Export</h2>
+						<button class="btn btn-outline-secondary" type="button" onclick="exportImage()">Export image</button>
+						<button class="btn btn-outline-secondary" type="button" onclick="exportSizes()">Export sizes</button>
 					</div>
-				</div>
-
 				</div>
 			</div>
 		</div>

@@ -131,8 +131,6 @@ function saveFont() {
 	// Download the file
 	let blob = new Blob([fontU8], {type: "application/octet-stream"});
 	let a = document.createElement('a');
-	a.style.display = "none";
-	document.body.appendChild(a);
 	let url = window.URL.createObjectURL(blob);
 	a.href = url;
 	a.download = fileName;
@@ -566,4 +564,141 @@ function generateFromFont() {
 function updateFont() {
 	document.getElementById("input").style.fontFamily = document.getElementById("inputFont").value;
 	document.getElementById("letterInput").style.fontFamily = document.getElementById("inputFont").value;
+}
+
+function exportImage() {
+	let columns = parseInt(prompt("How many columns do you want?", "32"));
+	if(isNaN(columns))	return;
+	
+	let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
+	ctx.canvas.width = tileWidth * columns;
+	ctx.canvas.height = Math.ceil(fontMap.length / columns) * tileHeight;
+
+	let x = 0, y = 0;
+	for(let c in fontMap) {
+		let imgData = ctx.createImageData(tileWidth, tileHeight);
+
+		let charImg = new Array(tileHeight * tileWidth);
+		for(let i = 0; i < tileSize; i++) {
+			charImg[(i * 4)]     = (fontTiles[i + (c * tileSize)] >> 6 & 3);
+			charImg[(i * 4) + 1] = (fontTiles[i + (c * tileSize)] >> 4 & 3);
+			charImg[(i * 4) + 2] = (fontTiles[i + (c * tileSize)] >> 2 & 3);
+			charImg[(i * 4) + 3] = (fontTiles[i + (c * tileSize)]      & 3);
+		}
+
+		for(let i = 0; i < imgData.data.length / 4; i++) {
+			imgData.data[i * 4]     = palette[charImg[i]][0];
+			imgData.data[i * 4 + 1] = palette[charImg[i]][1];
+			imgData.data[i * 4 + 2] = palette[charImg[i]][2];
+			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
+		}
+
+		ctx.putImageData(imgData, x + fontWidths[(c * 3)], y);
+		x += tileWidth
+		if(x > ctx.canvas.width) {
+			y += tileHeight;
+			x = 0;
+		}
+	}
+
+	// Download the file
+	let binString = atob(ctx.canvas.toDataURL().split(',')[1]);
+	let arrBuf = new ArrayBuffer(binString.length);
+	let arr = new Uint8Array(arrBuf);
+	for(let i in binString) {
+		arr[i] = binString.charCodeAt(i);
+	}
+
+	let blob = new Blob([arrBuf], {type: "image/png"});
+	let a = document.createElement('a');
+	let url = window.URL.createObjectURL(blob);
+	a.href = url;
+	a.download = fileName + ".png";
+	a.click();
+	window.URL.revokeObjectURL(url);
+}
+
+function importImage(file) {
+	let reader = new FileReader();
+	reader.readAsDataURL(file);
+
+	reader.onload = function() {
+		let image = new Image();
+		image.src = this.result;
+		image.onload = function() {
+			let columns = this.width / tileWidth;
+			let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
+			ctx.canvas.width = tileWidth * columns;
+			ctx.canvas.height = Math.ceil(fontMap.length / columns) * tileHeight;
+			ctx.drawImage(this, 0, 0);
+			if(this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
+				console.log("Wrong size image!");
+				return;
+			}
+			for(let c in fontMap) {
+				let image = ctx.getImageData((c % (columns + 1)) * tileWidth, Math.floor(c / (columns + 1)) * tileHeight, tileWidth, tileHeight);
+
+				let newBitmap = [];
+				for(let i = 0; i < image.data.length; i += 4) {
+					let colors = [];
+					for(let j = 0; j < 4; j++) {
+						colors.push(Math.sqrt(Math.pow(image.data[i] - palette[j][0], 2)));
+					}
+					newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+				}
+	
+				for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+					let byte = 0;
+					byte |= (newBitmap[i]     & 3) << 6;
+					byte |= (newBitmap[i + 1] & 3) << 4;
+					byte |= (newBitmap[i + 2] & 3) << 2;
+					byte |= (newBitmap[i + 3] & 3) << 0;
+	
+					fontTiles[(i/4) + (c * tileSize)] = byte;
+				}
+			}
+			updateBitmap();
+		}
+	}
+}
+
+function exportSizes() {
+	let out = [];
+	for(let c of fontMap) {
+		c = String.fromCharCode(c);
+		let i = getCharIndex(c);
+		out.push({
+			"char": c,
+			"left spacing": fontWidths[i * 3],
+			"bitmap width": fontWidths[(i * 3) + 1],
+			"total width": fontWidths[(i * 3) + 2]
+		});
+	}
+
+	// Download the file
+	let blob = new Blob([JSON.stringify(out, null, 2)], {type: "application/json"});
+	let a = document.createElement('a');
+	let url = window.URL.createObjectURL(blob);
+	a.href = url;
+	a.download = fileName + ".json";
+	a.click();
+	window.URL.revokeObjectURL(url);
+}
+
+function importSizes(file) {
+	let reader = new FileReader();
+	reader.readAsText(file);
+
+	reader.onload = function() {
+		let json = JSON.parse(this.result);
+		
+		for(let char of json) {
+			let i = getCharIndex(char["char"]);
+			fontWidths[i * 3]       = char["left spacing"];
+			fontWidths[(i * 3) + 1] = char["bitmap width"];
+			fontWidths[(i * 3) + 2] = char["total width"];
+		}
+
+		updateBitmap();
+	}
 }
