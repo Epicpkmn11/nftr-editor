@@ -457,9 +457,8 @@ function addCharacters() {
 
 	// Increase character maps offsets
 	let i = 0;
-	while(newLocPAMC + 8 < newFile.length && newLocPAMC != 0) {
+	while(newLocPAMC + (chars.length * 4) < newFile.length && newLocPAMC != 0) {
 		lastPAMC = newLocPAMC;
-		let offset = newLocPAMC;
 		if(newData.getUint32(newLocPAMC + 8, true) == 0)
 			break;
 		newData.setUint32(newLocPAMC + 8, newData.getUint32(newLocPAMC + 8, true) + amountToIncrease(chars.length, true, true), true);
@@ -496,7 +495,7 @@ function addCharacters() {
 		}
 		newFile.fill(0, offset, newFile.length);
 	} else {
-		alert("Warning! NFTR has been expanded, but the characters must be manually added to a map since the last map is not type 2!\n(The type is + " + newData.getUint32(lastPAMC + 4, true) + ")");
+		alert("Warning! NFTR has been expanded, but the characters must be manually added to a map since the last map is not type 2!\n(The type is " + newData.getUint32(lastPAMC + 4, true) + ")");
 	}
 
 	fontU8 = newFile;
