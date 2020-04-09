@@ -100,6 +100,12 @@ function reloadFont(buffer) {
 			}
 		}
 	}
+	// Uncomment to log letters in the font map
+	// let letters = "";
+	// for(let char of fontMap) {
+	// 	letters += String.fromCharCode(char);
+	// }
+	// console.log(letters);
 	document.getElementById("input").style.fontSize = tileWidth + "px";
 	updateBrush(-1);
 	for(let i = 0; i < 4; i++) {
@@ -398,6 +404,7 @@ function saveLetter() {
 
 function addCharacters() {
 	let str = prompt("Enter the characters you want to add: ");
+	if(str == null)	return;
 	str = str.split("").sort(function(a, b) { return a.charCodeAt(0) > b.charCodeAt(0); }).join("");
 	let chars = "";
 	for(let i in str) {
@@ -415,8 +422,11 @@ function addCharacters() {
 	let newFile = new Uint8Array(length);
 	let newData = new DataView(newFile.buffer);
 
+	let offset = 0x14;
+	offset += data.getUint32(offset, true);
+
 	// Increase chunk size
-	data.setUint32(0x34, data.getUint32(0x34, true) + amountToIncrease(chars.length, true, false), true);
+	data.setUint32(offset, data.getUint32(offset, true) + amountToIncrease(chars.length, true, false), true);
 
 	// Copy through glyphs
 	let locHDWC = data.getUint32(0x24, true);
@@ -446,7 +456,8 @@ function addCharacters() {
 	let lastPAMC;
 
 	// Increase character maps offsets
-	while(newLocPAMC < newFile.length && newLocPAMC != 0) {
+	let i = 0;
+	while(newLocPAMC + 8 < newFile.length && newLocPAMC != 0) {
 		lastPAMC = newLocPAMC;
 		let offset = newLocPAMC;
 		if(newData.getUint32(newLocPAMC + 8, true) == 0)
@@ -496,10 +507,17 @@ function addCharacters() {
 
 function amountToIncrease(increaseAmount, tiles, widths) {
 	let out = 0;
-	if(tiles)	out += increaseAmount * tileSize;
-	if(widths)	out += increaseAmount * 3;
 
-	while(out % 4)	out++;
+	if(tiles) {
+		out += increaseAmount * tileSize;
+		while(out % 4)	out++;
+	}
+
+	if(widths) {
+		out += increaseAmount * 3;
+		while(out % 4)	out++;
+	}
+
 	return out;
 }
 
