@@ -595,7 +595,7 @@ function exportImage() {
 
 		ctx.putImageData(imgData, x + fontWidths[(c * 3)], y);
 		x += tileWidth
-		if(x > ctx.canvas.width) {
+		if(x >= ctx.canvas.width) {
 			y += tileHeight;
 			x = 0;
 		}
@@ -636,7 +636,7 @@ function importImage(file) {
 				return;
 			}
 			for(let c in fontMap) {
-				let image = ctx.getImageData((c % (columns + 1)) * tileWidth, Math.floor(c / (columns + 1)) * tileHeight, tileWidth, tileHeight);
+				let image = ctx.getImageData((c % columns) * tileWidth, Math.floor(c / columns) * tileHeight, tileWidth, tileHeight);
 
 				let newBitmap = [];
 				for(let i = 0; i < image.data.length; i += 4) {
