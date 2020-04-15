@@ -1,5 +1,6 @@
 canvas {
 	border: 1px solid gray;
+	background-color: white;
 }
 
 textarea {
@@ -13,6 +14,7 @@ table {
 	border-collapse: collapse;
 	border: 1px solid black;
 	cursor: crosshair;
+	background-color: white;
 }
 
 table:active {
