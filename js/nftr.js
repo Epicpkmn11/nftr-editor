@@ -385,10 +385,14 @@ function saveLetter() {
 
 	for(let i = 0; i < tileWidth * tileHeight; i += 4) {
 		let byte = 0;
-		byte |= (document.getElementById("pixel" + i).classList[0]) << 6;
-		byte |= (document.getElementById("pixel" + (i + 1)).classList[0] & 3) << 4;
-		byte |= (document.getElementById("pixel" + (i + 2)).classList[0] & 3) << 2;
-		byte |= (document.getElementById("pixel" + (i + 3)).classList[0] & 3) << 0;
+		if(document.getElementById("pixel" + i))
+			byte |= (document.getElementById("pixel" + i).classList[0]) << 6;
+		if(document.getElementById("pixel" + (i + 1)))
+			byte |= (document.getElementById("pixel" + (i + 1)).classList[0] & 3) << 4;
+		if(document.getElementById("pixel" + (i + 2)))
+			byte |= (document.getElementById("pixel" + (i + 2)).classList[0] & 3) << 2;
+		if(document.getElementById("pixel" + (i + 3)))
+			byte |= (document.getElementById("pixel" + (i + 3)).classList[0] & 3) << 0;
 
 		fontTiles[(i/4) + (t * tileSize)] = byte;
 	}
