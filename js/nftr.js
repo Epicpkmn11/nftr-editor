@@ -597,7 +597,7 @@ function exportImage() {
 			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
 		}
 
-		ctx.putImageData(imgData, x + fontWidths[(c * 3)], y);
+		ctx.putImageData(imgData, x, y);
 		x += tileWidth
 		if(x >= ctx.canvas.width) {
 			y += tileHeight;
