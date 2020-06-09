@@ -23,8 +23,8 @@ function loadFont(file) {
 }
 
 function reloadFont(buffer) {
-	data = new DataView(buffer);
 	fontU8 = new Uint8Array(buffer);
+	data = new DataView(fontU8.buffer);
 	let offset = 0x14;
 
 	// Skip font info
@@ -41,7 +41,10 @@ function reloadFont(buffer) {
 	// Load character glyphs
 	let tileAmount = ((chunkSize - 0x10) / tileSize);
 	offset += 4;
-	fontTiles = new Uint8Array(buffer.slice(offset, offset + (tileSize * tileAmount)));
+	fontTiles = [];
+	for(let i = 0; i < tileAmount; i++) {
+		fontTiles.push(new Uint8Array(buffer.slice(offset + (i * tileSize), offset + ((i + 1) * tileSize))));
+	}
 
 	// Fix top row
 	// TODO: Maybe don't do this? Look into what these mean
@@ -55,7 +58,10 @@ function reloadFont(buffer) {
 	offset = data.getUint32(0x24, true) - 4;
 	chunkSize = data.getUint32(offset, true);
 	offset += 4 + 8;
-	fontWidths = new Uint8Array(buffer.slice(offset, offset + (3 * tileAmount)));
+	fontWidths = [];
+	for(let i = 0; i < tileAmount; i++) {
+		fontWidths.push(new Uint8Array(buffer.slice(offset + (i * 3), offset + ((i + 1) * 3))));
+	}
 
 	// Load character maps
 	fontMap = new Uint16Array(tileAmount);
@@ -122,11 +128,15 @@ function reloadFont(buffer) {
 function saveFont() {
 	// Copy glyphs back in
 	let offset = data.getUint32(0x20, true) + 8;
-	fontU8.set(fontTiles, offset);
+	for(let i = 0; i < fontTiles.length; i++) {
+		fontU8.set(fontTiles[i], offset + (i * fontTiles[0].length));
+	}
 
 	// Copy widths back in
 	offset = data.getUint32(0x24, true) + 8;
-	fontU8.set(fontWidths, offset);
+	for(let i = 0; i < fontWidths.length; i++) {
+		fontU8.set(fontWidths[i], offset + (i * 3));
+	}
 
 	// Download the file
 	let blob = new Blob([fontU8], {type: "application/octet-stream"});
@@ -180,10 +190,10 @@ function updateBitmap() {
 		let t = getCharIndex(c);
 		let charImg = new Array(tileHeight * tileWidth);
 		for(let i = 0; i < tileSize; i++) {
-			charImg[(i * 4)]     = (fontTiles[i + (t * tileSize)] >> 6 & 3);
-			charImg[(i * 4) + 1] = (fontTiles[i + (t * tileSize)] >> 4 & 3);
-			charImg[(i * 4) + 2] = (fontTiles[i + (t * tileSize)] >> 2 & 3);
-			charImg[(i * 4) + 3] = (fontTiles[i + (t * tileSize)]      & 3);
+			charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
+			charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
+			charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
+			charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
 		}
 
 		for(let i = 0; i < imgData.data.length / 4; i++) {
@@ -193,12 +203,12 @@ function updateBitmap() {
 			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
 		}
 
-		if(x + fontWidths[(t * 3) + 2] > canvas.width) {
+		if(x + fontWidths[t][2] > canvas.width) {
 			y += tileHeight;
 			x = 0;
 		}
-		ctx.putImageData(imgData, x + fontWidths[(t * 3)], y);
-		x += fontWidths[(t * 3) + 2];
+		ctx.putImageData(imgData, x + fontWidths[t][0], y);
+		x += fontWidths[t][2];
 	}
 }
 
@@ -245,10 +255,10 @@ function loadLetter() {
 	}
 	let charImg = new Array(tileHeight * tileWidth);
 	for(let i = 0; i < tileSize; i++) {
-		charImg[(i * 4)]     = (fontTiles[i + (t * tileSize)] >> 6 & 3);
-		charImg[(i * 4) + 1] = (fontTiles[i + (t * tileSize)] >> 4 & 3);
-		charImg[(i * 4) + 2] = (fontTiles[i + (t * tileSize)] >> 2 & 3);
-		charImg[(i * 4) + 3] = (fontTiles[i + (t * tileSize)]      & 3);
+		charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
+		charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
+		charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
+		charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
 	}
 
 	document.getElementById("letter").innerHTML = "";
@@ -263,9 +273,9 @@ function loadLetter() {
 			item.style.backgroundColor = paletteHTML[charImg[(y * tileWidth) + x]];
 			item.onmousedown = function() { drawLetter((y * tileWidth) + x); };
 			item.onmouseover = function() { drawLetter((y * tileWidth) + x); };
-			if(x == (fontWidths[(t * 3) + 2] - fontWidths[(t * 3)])) {
+			if(x == (fontWidths[t][2] - fontWidths[t][0])) {
 				item.style.borderLeft = "1px solid red";
-			} else if(x == fontWidths[(t * 3) + 1]) {
+			} else if(x == fontWidths[t][1]) {
 				item.style.borderLeft = "1px solid blue";
 			}
 			row.appendChild(item);
@@ -274,19 +284,19 @@ function loadLetter() {
 	}
 
 	// If the last column is colored, apply it to the table itself
-	if((fontWidths[(t * 3) + 2] - fontWidths[(t * 3)]) == tileWidth) {
+	if((fontWidths[t][2] - fontWidths[t][0]) == tileWidth) {
 		document.getElementById("letter").style.borderRight = "1px solid red";
-	} else if(fontWidths[(t * 3) + 1] == tileWidth) {
+	} else if(fontWidths[t][1] == tileWidth) {
 		document.getElementById("letter").style.borderRight = "1px solid blue";
 	} else {
 		document.getElementById("letter").style.borderRight = "";
 	}
 
-	document.getElementById("left").value = fontWidths[(t * 3)];
+	document.getElementById("left").value = fontWidths[t][0];
 	document.getElementById("left").max = tileWidth;
-	document.getElementById("bitmapWidth").value = fontWidths[(t * 3) + 1];
+	document.getElementById("bitmapWidth").value = fontWidths[t][1];
 	document.getElementById("bitmapWidth").max = tileWidth;
-	document.getElementById("totalWidth").value = fontWidths[(t * 3) + 2];
+	document.getElementById("totalWidth").value = fontWidths[t][2];
 	document.getElementById("totalWidth").max = tileWidth;
 }
 
@@ -394,12 +404,12 @@ function saveLetter() {
 		if(document.getElementById("pixel" + (i + 3)))
 			byte |= (document.getElementById("pixel" + (i + 3)).classList[0] & 3) << 0;
 
-		fontTiles[(i/4) + (t * tileSize)] = byte;
+		fontTiles[t][i / 4] = byte;
 	}
 
-	fontWidths[(t * 3)] = document.getElementById("left").value;
-	fontWidths[(t * 3) + 1] = document.getElementById("bitmapWidth").value;
-	fontWidths[(t * 3) + 2] = document.getElementById("totalWidth").value;
+	fontWidths[t][0] = document.getElementById("left").value;
+	fontWidths[t][1] = document.getElementById("bitmapWidth").value;
+	fontWidths[t][2] = document.getElementById("totalWidth").value;
 
 	updateBitmap();
 }
@@ -455,55 +465,30 @@ function addCharacters() {
 	// Copy the rest of the file
 	newFile.set(fontU8.subarray(locPAMC - 8, fontU8.length), newLocPAMC - 8);
 
-	let lastPAMC;
-
+	
 	// Increase character maps offsets
-	let i = 0;
-	while(newLocPAMC + (chars.length * 4) < newFile.length && newLocPAMC != 0) {
-		lastPAMC = newLocPAMC;
-		if(newData.getUint32(newLocPAMC + 8, true) == 0)
-			break;
-		newData.setUint32(newLocPAMC + 8, newData.getUint32(newLocPAMC + 8, true) + amountToIncrease(chars.length, true, true), true);
+	while(newLocPAMC <= newFile.length && newData.getUint32(newLocPAMC + 8, true) != 0) {
+		let final = newData.getUint32(newLocPAMC + 4, true) == 2;
+		newData.setUint32(newLocPAMC + 8, newData.getUint32(newLocPAMC + 8, true) + amountToIncrease(chars.length, true, true) + (final ? chars.length * 4 : 0), true);
 		newLocPAMC = newData.getUint32(newLocPAMC + 8, true);
 	}
 
 	// Write new size to header
 	newData.setUint32(8, newFile.length, true);
 
-	// Add new characters to last PAMC if type 2
-	if(newData.getUint32(lastPAMC + 4, true) == 2) {
-		// Chunk size
-		newData.setUint32(lastPAMC - 4, newData.getUint32(lastPAMC - 4, true) + (chars.length * 4), true);
-		// Last character (if greater than the current)
-		if(newData.getUint32(lastPAMC + 2, true) < chars.charCodeAt(chars.length - 1)) {
-			newData.setUint32(lastPAMC + 2, chars.charCodeAt(chars.length - 1), true);
-		}
-		// Offset to next map
-		if(newData.getUint32(lastPAMC + 8, true) != 0) { // Apparently 0 can mean the end too, if it does then leave it
-			newData.setUint32(lastPAMC + 8, newData.getUint32(lastPAMC + 8, true) + (chars.length * 4), true);
-		}
-		// Number of char + tile groups
-		let oldAmount = newData.getUint16(lastPAMC + 0xC, true);
-		newData.setUint32(lastPAMC + 0xC, oldAmount + chars.length, true);
-
-		let offset = lastPAMC + 0xC + (oldAmount * 4);
-		let tileNo = newData.getUint16(offset, true);
-		offset += 2;
-		for(let char of chars) {
-			newData.setUint16(offset, char.charCodeAt(0), true);
-			offset += 2;
-			newData.setUint16(offset, ++tileNo, true);
-			offset += 2;
-		}
-		newFile.fill(0, offset, newFile.length);
-	} else {
-		alert("Warning! NFTR has been expanded, but the characters must be manually added to a map since the last map is not type 2!\n(The type is " + newData.getUint32(lastPAMC + 4, true) + ")");
-	}
-
+	// Set back to main font buffer
 	fontU8 = newFile;
-	data = newData;
-
+	
+	// Reload for added bitmaps and widths
 	reloadFont(fontU8.buffer);
+	
+	// Add new characters to the end of the map
+	for(let i = 0; i < chars.length; i++) {
+		fontMap[fontMap.length - chars.length + i] = chars.charCodeAt(i);
+	};
+	
+	// Regenerate the maps
+	regenMaps();
 }
 
 function amountToIncrease(increaseAmount, tiles, widths) {
@@ -555,12 +540,12 @@ function generateFromFont() {
 			byte |= (newBitmap[i + 2] & 3) << 2;
 			byte |= (newBitmap[i + 3] & 3) << 0;
 
-			fontTiles[(i/4) + (t * tileSize)] = byte;
+			fontTiles[t][i / 4] = byte;
 		}
 
-		fontWidths[t * 3] = 0;
-		fontWidths[t * 3 + 1] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
-		fontWidths[t * 3 + 2] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
+		fontWidths[t][0] = 0;
+		fontWidths[t][1] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
+		fontWidths[t][2] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
 	}
 	updateBitmap();
 }
@@ -584,10 +569,10 @@ function exportImage() {
 
 		let charImg = new Array(tileHeight * tileWidth);
 		for(let i = 0; i < tileSize; i++) {
-			charImg[(i * 4)]     = (fontTiles[i + (c * tileSize)] >> 6 & 3);
-			charImg[(i * 4) + 1] = (fontTiles[i + (c * tileSize)] >> 4 & 3);
-			charImg[(i * 4) + 2] = (fontTiles[i + (c * tileSize)] >> 2 & 3);
-			charImg[(i * 4) + 3] = (fontTiles[i + (c * tileSize)]      & 3);
+			charImg[(i * 4)]     = (fontTiles[c][i] >> 6 & 3);
+			charImg[(i * 4) + 1] = (fontTiles[c][i] >> 4 & 3);
+			charImg[(i * 4) + 2] = (fontTiles[c][i] >> 2 & 3);
+			charImg[(i * 4) + 3] = (fontTiles[c][i]      & 3);
 		}
 
 		for(let i = 0; i < imgData.data.length / 4; i++) {
@@ -636,7 +621,7 @@ function importImage(file) {
 			ctx.canvas.height = Math.ceil(fontMap.length / columns) * tileHeight;
 			ctx.drawImage(this, 0, 0);
 			if(this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
-				console.log("Wrong size image!");
+				alert("Wrong size image!");
 				return;
 			}
 			for(let c in fontMap) {
@@ -658,7 +643,7 @@ function importImage(file) {
 					byte |= (newBitmap[i + 2] & 3) << 2;
 					byte |= (newBitmap[i + 3] & 3) << 0;
 	
-					fontTiles[(i/4) + (c * tileSize)] = byte;
+					fontTiles[c][i / 4] = byte;
 				}
 			}
 			updateBitmap();
@@ -673,9 +658,9 @@ function exportSizes() {
 		let i = getCharIndex(c);
 		out.push({
 			"char": c,
-			"left spacing": fontWidths[i * 3],
-			"bitmap width": fontWidths[(i * 3) + 1],
-			"total width": fontWidths[(i * 3) + 2]
+			"left spacing": fontWidths[i][0],
+			"bitmap width": fontWidths[i][1],
+			"total width": fontWidths[i][2]
 		});
 	}
 
@@ -698,11 +683,202 @@ function importSizes(file) {
 		
 		for(let char of json) {
 			let i = getCharIndex(char["char"]);
-			fontWidths[i * 3]       = char["left spacing"];
-			fontWidths[(i * 3) + 1] = char["bitmap width"];
-			fontWidths[(i * 3) + 2] = char["total width"];
+			fontWidths[i][0] = char["left spacing"];
+			fontWidths[i][1] = char["bitmap width"];
+			fontWidths[i][2] = char["total width"];
 		}
 
 		updateBitmap();
+	}
+}
+
+function sortMaps() {
+	let maps = [];
+	// Make combined map
+	for(let i = 0; i < fontMap.length; i++) {
+		maps.push({"map": fontMap[i], "tile": fontTiles[i], "width": fontWidths[i]})
+	}
+
+	// Sort by character mappings
+	let sorted = maps.sort(function(l, r) {
+		if(l.map < r.map) return -1;
+		else if(l.map > r.map) return 1;
+		return 0;
+	});
+
+	// Split back out
+	for(let i = 0; i < sorted.length; i++) {
+		fontMap[i] = sorted[i].map;
+		fontTiles[i] = sorted[i].tile;
+		fontWidths[i] = sorted[i].width;
+	}
+
+	// Copy back to font
+	let offset = data.getUint32(0x20, true) + 8;
+	for(let i = 0; i < fontTiles.length; i++) {
+		fontU8.set(fontTiles[i], offset + (i * fontTiles[0].length));
+	}
+	offset = data.getUint32(0x24, true) + 8;
+	for(let i = 0; i < fontWidths.length; i++) {
+		fontU8.set(fontWidths[i], offset + (i * 3));
+	}
+}
+
+function regenMaps() {
+	let maps = [], last = [0, fontMap[0]], range = [[fontMap[0], 0]];
+
+	sortMaps();
+
+	for(let c = 1; c <= fontMap.length; c++) {
+		if(fontMap[c] - 1 == last[1]) {
+			range.push([fontMap[c], c]);
+		} else {
+			maps.push(range);
+			if(c < fontMap.length)
+				range = [[fontMap[c], c]];
+		}
+		last = [c, fontMap[c]];
+	}
+	let type2 = [];
+	maps.filter(r => r.length <= 0x14).forEach(r => r.forEach(item => type2.push(item)));
+	maps = maps.filter(r => r.length > 0x14);
+
+	let ofs = data.getUint32(0x28, true) - 8;
+
+	outMaps = [];
+	maps.forEach(function(r) {
+		outMaps.push(new CharMap0(r[0][0], r[r.length - 1][0], ofs, r[0][1]))
+		ofs = outMaps[outMaps.length - 1].offset + outMaps[outMaps.length - 1].length;
+	});
+	outMaps.push(new CharMap2(0, 0xFFFF, ofs, type2));
+
+	let newU8 = new Uint8Array(outMaps[outMaps.length - 1].offset + outMaps[outMaps.length - 1].length);
+	let newData = new DataView(newU8.buffer);
+
+	
+	// Copy through maps
+	ofs = data.getUint32(0x28, true) - 8;
+	newU8.set(fontU8.subarray(0, ofs), 0);
+
+	// Set new size in header
+	newData.setUint32(0x8, newU8.length, true);
+	// Set new chunk count
+	newData.setUint16(0xE, 0x3 + outMaps.length, true);
+
+	outMaps.forEach(r => newU8.set(r.get(), r.offset));
+
+	fontU8 = newU8;
+
+	// Reload font
+	reloadFont(fontU8.buffer);
+}
+
+function pad(num, length, base = 10) {
+	let str = num.toString(base);
+	while(str.length < length) {
+		str = "0" + str;
+	}
+	return str;
+}
+
+DataView.prototype.setString = function(byteOffset, value) {
+	if(typeof(byteOffset) == "number" && typeof(value) == "string") {
+		for(let c = 0; c < value.length; c++) {
+			this.setUint8(byteOffset + c, value.charCodeAt(c));
+		}
+	}
+}
+
+class CharMap0 {
+	// Type 0
+	constructor(firstChar, lastChar, offset, firstTile) {
+		if(typeof(firstChar) != "number")
+			console.error("Type error! Should be 'number'", firstChar);
+		this.firstChar = firstChar;
+
+		if(typeof(lastChar) != "number")
+		console.error("Type error! Should be 'number'", lastChar);
+		this.lastChar = lastChar;
+		
+		if(typeof(offset) != "number")
+		console.error("Type error! Should be 'number'", offset);
+		this.offset = offset;
+
+		if(typeof(firstTile) != "number")
+		console.error("Type error! Should be 'number'", firstTile);
+		this.firstTile = firstTile;
+
+		this.length = 0x18;
+	}
+
+	get() {
+		let arr = new Uint8Array(0x18);
+		let data = new DataView(arr.buffer);
+
+		data.setString(0x00, "PAMC"); // ID
+		data.setUint32(0x04, this.length, true); // Chunk size
+		data.setUint16(0x08, this.firstChar, true); // First char
+		data.setUint16(0x0A, this.lastChar, true); // Last char
+		data.setUint32(0x0C, 0, true); // Map type
+		data.setUint32(0x10, this.offset + 0x18 + 8, true); // Offset to next
+		data.setUint16(0x14, this.firstTile, true); // First tile no
+
+		return arr;
+	}
+
+	toString() {
+		let str = "";
+		this.get().forEach(r => str += pad(r, 2, 16));
+		return str;
+	}
+}
+
+// TODO: Char map 1
+
+class CharMap2 {
+	// Type 2
+	constructor(firstChar, lastChar, offset, pairs) {
+		if(typeof(firstChar) != "number")
+			console.error("Type error! Should be 'number'", firstChar);
+		this.firstChar = firstChar;
+
+		if(typeof(lastChar) != "number")
+		console.error("Type error! Should be 'number'", lastChar);
+		this.lastChar = lastChar;
+		
+		if(typeof(offset) != "number")
+		console.error("Type error! Should be 'number'", offset);
+		this.offset = offset;
+
+		if(typeof(pairs) != "object")
+		console.error("Type error! Should be 'object'", pairs);
+		this.pairs = pairs;
+
+		this.length = 0x14 + 2 + (this.pairs.length * 4) + 2;
+	}
+
+	get(zeroForNext = true) {
+		let arr = new Uint8Array(this.length);
+		let data = new DataView(arr.buffer);
+
+		data.setString(0x00, "PAMC"); // ID
+		data.setUint32(0x04, length, true); // Chunk size
+		data.setUint16(0x08, this.firstChar, true); // First char
+		data.setUint16(0x0A, this.lastChar, true); // Last char
+		data.setUint32(0x0C, 2, true); // Map type
+		data.setUint32(0x10, zeroForNext ? 0 : this.offset + this.length + 8, true); // Offset to next
+		data.setUint16(0x14, this.pairs.length, true); // Number of char=tile pairs
+		for(let i = 0; i < this.pairs.length; i++) {
+			data.setUint16(0x16 + (i * 4), this.pairs[i][0], true); // Char no
+			data.setUint16(0x18 + (i * 4), this.pairs[i][1], true); // Tile no
+		}
+
+		return arr;
+	}
+
+	toString() {
+		let str = "";
+		this.get().forEach(r => str += pad(r, 2, 16));
+		return str;
 	}
 }
