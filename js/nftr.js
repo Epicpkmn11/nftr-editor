@@ -58,7 +58,7 @@ function reloadFont(buffer) {
 	offset = data.getUint32(0x24, true) - 4;
 	chunkSize = data.getUint32(offset, true);
 	offset += 4 + 2;
-	let charCount = data.getUint16(offset, true);
+	let charCount = data.getUint16(offset, true) + 1;
 	offset += 2 + 4;
 	fontWidths = [];
 	for(let i = 0; i < tileAmount; i++) {
