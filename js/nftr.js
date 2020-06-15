@@ -1,4 +1,5 @@
 let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = -1;
+let maxChar = 0;
 let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0xD7, 0xD7, 0xD7, 0xFF]];
 let paletteHTML = ["", "#282828", "#909090", "#D7D7D7"];
 let data, fontU8, fileName;
@@ -59,6 +60,7 @@ function reloadFont(buffer) {
 	chunkSize = data.getUint32(offset, true);
 	offset += 4 + 2;
 	let charCount = data.getUint16(offset, true) + 1;
+	maxChar = charCount;
 	offset += 2 + 4;
 	fontWidths = [];
 	for(let i = 0; i < tileAmount; i++) {
@@ -507,10 +509,6 @@ function addCharacters() {
 
 	// Regenerate the maps
 	regenMaps();
-
-	// Decrease max character
-	data.setUint16(newLocHDWC + 2, newData.getUint16(newLocHDWC + 2, true) - chars.length, true);
-	reloadFont(fontU8.buffer);
 }
 
 function amountToDecrease(decreaseAmount, tiles, widths) {
@@ -619,6 +617,7 @@ function removeCharacters() {
 	// Regenerate the maps
 	regenMaps();
 
+	// Decrease max character
 	data.setUint16(newLocHDWC + 2, newData.getUint16(newLocHDWC + 2, true) - chars.length, true);
 	reloadFont(fontU8.buffer);
 }
@@ -826,6 +825,7 @@ function sortMaps() {
 	for(let i = 0; i < fontMap.length; i++) {
 		fontMap[i] = sorted[i].map;
 	}
+	console.log(fontTiles, sorted);
 	for(let i = 0; i < fontTiles.length; i++) {
 		fontTiles[i] = sorted[i].tile;
 	}
