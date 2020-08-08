@@ -627,13 +627,19 @@ function generateFromFont() {
 	ctx.canvas.width = tileWidth;
 	ctx.canvas.height = tileHeight;
 	let font = prompt("Enter a font to use", document.getElementById("inputFont").value);
+	let regen = confirm("Regerate existing characters?\n\nCancel = No, OK = Yes")
 	if(font == null)	return;
 	if(font == "")	font = "Sans-Serif";
 	ctx.font = tileWidth + "px " + font;
 
-	for(let char of fontMap) {
+	for(let i in fontMap) {
+		if(!regen && !fontTiles[i].every(function(x) { return x == fontTiles[i][0]; }))
+			continue;
+			
+		let char = String.fromCharCode(fontMap[i]);
+		console.log(char);
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.fillText(String.fromCharCode(char), 0, tileWidth);
+		ctx.fillText(char, 0, tileWidth);
 		let image = ctx.getImageData(0, 0, tileWidth, tileHeight);
 
 		let newBitmap = [];
@@ -645,8 +651,8 @@ function generateFromFont() {
 			}
 			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
 		}
-		let t = getCharIndex(String.fromCharCode(char));
-		if(t == questionMark && String.fromCharCode(char) != "?")	continue;
+		let t = getCharIndex(char);
+		if(t == questionMark && char != "?")	continue;
 
 		for(let i = 0; i < tileWidth * tileHeight; i += 4) {
 			let byte = 0;
@@ -659,8 +665,8 @@ function generateFromFont() {
 		}
 
 		fontWidths[t][0] = 0;
-		fontWidths[t][1] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
-		fontWidths[t][2] = Math.round(ctx.measureText(String.fromCharCode(char)).actualBoundingBoxRight);
+		fontWidths[t][1] = Math.round(ctx.measureText(char).actualBoundingBoxRight);
+		fontWidths[t][2] = Math.round(ctx.measureText(char).actualBoundingBoxRight);
 	}
 	updateBitmap();
 }
