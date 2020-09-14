@@ -42,8 +42,8 @@ repo: Epicpkmn11/nftr-editor
 						<h2>Select a font:</h2>
 						<div class="input-group mb-3">
 							<div class="custom-file">
-								<label class="custom-file-label bg-light text-dark" for="fileSelector">Select a font</label>
-								<input class="custom-file-input" id="fileSelector" type="file" accept=".nftr" onchange="loadFont(this.files[0])">
+								<label class="custom-file-label bg-light text-dark" for="fontSelector">Select a font</label>
+								<input class="custom-file-input" id="fontSelector" type="file" accept=".nftr" onchange="loadFont(this.files[0])">
 							</div>
 							<div class="input-group-append">
 								<input class="btn btn-outline-primary collapse" id="saveButton" type="button" onclick="saveFont()" value="Save">
@@ -93,7 +93,7 @@ repo: Epicpkmn11/nftr-editor
 							<div class="row">
 								<div class="col-sm-6">
 									<label for="letterInput">Letter</label>
-									<input class="form-control bg-light text-dark" id="letterInput" type="text" min="0" max="3" placeholder="Letter" onkeyup="loadLetter()">
+									<input class="form-control bg-light text-dark" id="letterInput" type="text" placeholder="Letter" onkeyup="loadLetter()">
 									<br>
 									<table id="letter" onmouseenter="keyListener(true)" onmouseleave="keyListener(false)"></table>
 									<br>
@@ -103,10 +103,10 @@ repo: Epicpkmn11/nftr-editor
 								<div class="col-sm-6">
 									<label><abbr title="While mouse is over the letter image, hold Shift for color 1 or press 1 - 4 for the respective color">Brush color</abbr></label>
 									<div class="btn-group brush-btn-box">
-										<input class="btn" id="brushColor0" type="button" onclick="updateBrush(0)">
-										<input class="btn" id="brushColor1" type="button" onclick="updateBrush(1)">
-										<input class="btn" id="brushColor2" type="button" onclick="updateBrush(2)">
-										<input class="btn" id="brushColor3" type="button" onclick="updateBrush(3)">
+										<input class="btn" id="brushColor0" type="button" onclick="updateBrush(0)" value=" ">
+										<input class="btn" id="brushColor1" type="button" onclick="updateBrush(1)" value=" ">
+										<input class="btn" id="brushColor2" type="button" onclick="updateBrush(2)" value=" ">
+										<input class="btn" id="brushColor3" type="button" onclick="updateBrush(3)" value=" ">
 									</div>
 									<br>
 									<br>
@@ -130,15 +130,15 @@ repo: Epicpkmn11/nftr-editor
 							<div class="row">
 								<div class="col-sm-6">
 									<div class="custom-file">
-										<label class="custom-file-label bg-light text-dark" for="fileSelector">Import image</label>
-										<input class="custom-file-input" id="fileSelector" type="file" accept="image/*" onchange="importImage(this.files[0])">
+										<label class="custom-file-label bg-light text-dark" for="imageSelector">Import image</label>
+										<input class="custom-file-input" id="imageSelector" type="file" accept="image/*" onchange="importImage(this.files[0])">
 									</div>
 								</div>
 								<br><br>
 								<div class="col-sm-6">
 									<div class="custom-file">
-										<label class="custom-file-label bg-light text-dark" for="fileSelector">Import sizes</label>
-										<input class="custom-file-input" id="fileSelector" type="file" accept="application/json" onchange="importSizes(this.files[0])">
+										<label class="custom-file-label bg-light text-dark" for="sizesSelector">Import sizes</label>
+										<input class="custom-file-input" id="sizesSelector" type="file" accept="application/json" onchange="importSizes(this.files[0])">
 									</div>
 								</div>
 							</div>
