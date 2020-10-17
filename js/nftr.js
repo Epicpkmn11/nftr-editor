@@ -10,8 +10,8 @@ var onkeydown, onkeyup;
 function loadFont(file) {
 	if(!file) {
 		alert("No file selected!");
-		$("#saveButton").collapse("hide");
-		$("#editBox").collapse("hide");
+		new bootstrap.Collapse(document.getElementById("editBox"), {toggle: false});
+		new bootstrap.Collapse(document.getElementById("saveButton"), {toggle: false});
 		window.onbeforeunload = function() { return; };
 		return false;
 	}
@@ -121,8 +121,8 @@ function reloadFont(buffer) {
 	for(let i = 0; i < 4; i++) {
 		updatePalette(i);
 	}
-	$("#saveButton").collapse("show");
-	$("#editBox").collapse("show");
+	new bootstrap.Collapse(document.getElementById("editBox"), {toggle: true});
+	new bootstrap.Collapse(document.getElementById("saveButton"), {toggle: true});
 	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsaved data will be lost!"; };
 
 	questionMark = getCharIndex("?");
@@ -626,18 +626,19 @@ function generateFromFont() {
 	let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
 	ctx.canvas.width = tileWidth;
 	ctx.canvas.height = tileHeight;
-	let font = prompt("Enter a font to use", document.getElementById("inputFont").value);
 	let regen = confirm("Regerate existing characters?\n\nCancel = No, OK = Yes")
-	if(font == null)	return;
-	if(font == "")	font = "Sans-Serif";
-	ctx.font = tileWidth + "px " + font;
+	let font = document.getElementById("inputFont").value;
+	let bold = document.getElementById("fontWeight").checked ? "bold " : "";
+	let italic = document.getElementById("fontStyle").checked ? "italic " : "";
+	if(font == "")
+		font = "Sans-Serif";
+	ctx.font = bold + italic + tileWidth + "px " + font;
 
 	for(let i in fontMap) {
 		if(!regen && !fontTiles[i].every(function(x) { return x == fontTiles[i][0]; }))
 			continue;
 			
 		let char = String.fromCharCode(fontMap[i]);
-		console.log(char);
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx.fillText(char, 0, tileWidth);
 		let image = ctx.getImageData(0, 0, tileWidth, tileHeight);
@@ -674,6 +675,12 @@ function generateFromFont() {
 function updateFont() {
 	document.getElementById("input").style.fontFamily = document.getElementById("inputFont").value;
 	document.getElementById("letterInput").style.fontFamily = document.getElementById("inputFont").value;
+
+	document.getElementById("input").style.fontWeight = document.getElementById("fontWeight").checked ? "bold" : "normal";
+	document.getElementById("letterInput").style.fontWeight = document.getElementById("fontWeight").checked ? "bold" : "normal";
+
+	document.getElementById("input").style.fontStyle = document.getElementById("fontStyle").checked ? "italic" : "normal";
+	document.getElementById("letterInput").style.fontStyle = document.getElementById("fontStyle").checked ? "italic" : "normal";
 }
 
 function exportImage() {
@@ -831,7 +838,6 @@ function sortMaps() {
 	for(let i = 0; i < fontMap.length; i++) {
 		fontMap[i] = sorted[i].map;
 	}
-	console.log(fontTiles, sorted);
 	for(let i = 0; i < fontTiles.length; i++) {
 		fontTiles[i] = sorted[i].tile;
 	}
