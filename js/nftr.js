@@ -10,8 +10,10 @@ var onkeydown, onkeyup;
 function loadFont(file) {
 	if(!file) {
 		alert("No file selected!");
-		new bootstrap.Collapse(document.getElementById("editBox"), {toggle: false});
-		new bootstrap.Collapse(document.getElementById("saveButton"), {toggle: false});
+		if(document.getElementById("editBox").classList.contains("show")) {
+			new bootstrap.Collapse(document.getElementById("editBox"), {toggle: false});
+			new bootstrap.Collapse(document.getElementById("saveButton"), {toggle: false});
+		}
 		window.onbeforeunload = function() { return; };
 		return false;
 	}
@@ -121,8 +123,10 @@ function reloadFont(buffer) {
 	for(let i = 0; i < 4; i++) {
 		updatePalette(i);
 	}
-	new bootstrap.Collapse(document.getElementById("editBox"), {toggle: true});
-	new bootstrap.Collapse(document.getElementById("saveButton"), {toggle: true});
+	if(!document.getElementById("editBox").classList.contains("show")) {
+		new bootstrap.Collapse(document.getElementById("editBox"));
+		new bootstrap.Collapse(document.getElementById("saveButton"));
+	}
 	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsaved data will be lost!"; };
 
 	questionMark = getCharIndex("?");
