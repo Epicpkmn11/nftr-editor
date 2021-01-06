@@ -1,4 +1,4 @@
-let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = -1;
+let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = 0;
 let maxChar = 0;
 let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0xD7, 0xD7, 0xD7, 0xFF]];
 let paletteHTML = ["", "#282828", "#909090", "#D7D7D7"];
@@ -129,7 +129,10 @@ function reloadFont(buffer) {
 	}
 	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsaved data will be lost!"; };
 
-	questionMark = getCharIndex("?");
+	questionMark = 0;
+	questionMark = getCharIndex("�");
+	if(questionMark == 0)
+		questionMark = getCharIndex("?");
 	updateBitmap();
 }
 
@@ -255,7 +258,7 @@ function clearPalette(i) {
 function loadLetter() {
 	let char = document.getElementById("letterInput").value;
 	let t = getCharIndex(char);
-	if(t == questionMark && char[0] != "?") {
+	if(t == questionMark && char[0] != "�" && char[0] != "?") {
 		document.getElementById("letter").innerHTML = "";
 		document.getElementById("left").value = 0;
 		document.getElementById("bitmapWidth").value = 0;
@@ -400,7 +403,7 @@ function saveLetter() {
 	let char = document.getElementById("letterInput").value;
 	let t = getCharIndex(char);
 
-	if(t == questionMark && char[0] != "?")	return;
+	if(t == questionMark && char[0] != "�" && char[0] != "?")	return;
 
 	for(let i = 0; i < tileWidth * tileHeight; i += 4) {
 		let byte = 0;
@@ -447,9 +450,10 @@ function addCharacters() {
 	for(let i in str) {
 		if(str[i] != str[i-1]
 		&& getCharIndex(str[i]) == questionMark
-		&& (str[i] != "?" || questionMark == -1)
+		&& ((char[0] != "�" && str[i] != "?") || questionMark == 0)
 		&& str.charCodeAt(i) <= 0xFFFF
-		&& str.charAt(i) != '\n') {
+		&& str.charAt(i) != '\n'
+		&& str.charAt(i) != '\t') {
 			chars += str[i];
 		}
 	}
@@ -538,7 +542,7 @@ function removeCharacters() {
 	let chars = [], indexes = [];
 	for(let i in str) {
 		if(str[i] != str[i - 1]
-		&& (getCharIndex(str[i]) != questionMark || str[i] == "?")
+		&& (getCharIndex(str[i]) != questionMark || char[0] != "�" && str[i] == "?")
 		&& str.charCodeAt(i) <= 0xFFFF
 		&& str.charAt(i) != '\n') {
 			chars.push(str.charCodeAt(i));
@@ -657,7 +661,7 @@ function generateFromFont() {
 			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
 		}
 		let t = getCharIndex(char);
-		if(t == questionMark && char != "?")	continue;
+		if(t == questionMark && char[0] != "�" && char != "?")	continue;
 
 		for(let i = 0; i < tileWidth * tileHeight; i += 4) {
 			let byte = 0;
