@@ -2,12 +2,15 @@
 title: nftr-editor
 description: A website to help make editing nftr files easier
 image: https://pk11.us/nftr-editor/icon.png
-layout: raw
+layout: null
 permalink: /nftr-editor/index.html
 repo: Epicpkmn11/nftr-editor
 ---
 <html lang="en">
-{% include head.html %}
+<head>
+	{% include head.html %}
+	<link rel="stylesheet" type="text/css" media="screen" href="{{ 'css/style.css?v=' | append: site.github.build_revision }}">
+</head>
 <body>
 	<div class="content">
 		{% include nav.html %}
@@ -53,9 +56,9 @@ repo: Epicpkmn11/nftr-editor
 									<h3>Palette colors:</h3>
 									<div class="btn-group brush-btn-box">
 										<input class="btn btn-outline-secondary" id="palette0" type="color" value="#FF00FF" onchange="updatePalette(0)">
-										<input class="btn btn-outline-secondary" id="palette1" type="color" value="#282828" onchange="updatePalette(1)">
-										<input class="btn btn-outline-secondary" id="palette2" type="color" value="#909090" onchange="updatePalette(2)">
-										<input class="btn btn-outline-secondary" id="palette3" type="color" value="#D7D7D7" onchange="updatePalette(3)">
+										<input class="btn btn-outline-secondary" id="palette1" type="color" value="#929292" onchange="updatePalette(1)">
+										<input class="btn btn-outline-secondary" id="palette2" type="color" value="#434343" onchange="updatePalette(2)">
+										<input class="btn btn-outline-secondary" id="palette3" type="color" value="#000000" onchange="updatePalette(3)">
 									</div>
 									<br>
 									<br>
