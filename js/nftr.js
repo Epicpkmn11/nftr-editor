@@ -634,7 +634,8 @@ function generateFromFont() {
 	let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
 	ctx.canvas.width = tileWidth;
 	ctx.canvas.height = tileHeight;
-	let regen = confirm("Regerate existing characters?\n\nCancel = No, OK = Yes")
+	let regen = confirm("Regerate existing characters?\n\nCancel = No, OK = Yes");
+	let regenButtons = regen ? confirm("Regenerate special button characters? (Only in Nintendo's font)\n\nCancel = No, OK = Yes") : false;
 	let font = document.getElementById("inputFont").value;
 	let bold = document.getElementById("fontWeight").checked ? "bold " : "";
 	let italic = document.getElementById("fontStyle").checked ? "italic " : "";
@@ -643,7 +644,8 @@ function generateFromFont() {
 	ctx.font = bold + italic + tileWidth + "px " + font;
 
 	for(let i in fontMap) {
-		if(!regen && !fontTiles[i].every(function(x) { return x == fontTiles[i][0]; }))
+		if((!regen && !fontTiles[i].every(function(x) { return x == fontTiles[i][0]; }))
+		 || (!regenButtons && fontMap[i] >= 0xE000 && fontMap[i] <= 0xE07E))
 			continue;
 			
 		let char = String.fromCharCode(fontMap[i]);
