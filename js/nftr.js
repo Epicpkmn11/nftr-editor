@@ -676,8 +676,8 @@ function generateFromFont() {
 		}
 
 		fontWidths[t][0] = 0;
-		fontWidths[t][1] = Math.round(ctx.measureText(char).actualBoundingBoxRight);
-		fontWidths[t][2] = Math.round(ctx.measureText(char).actualBoundingBoxRight);
+		fontWidths[t][1] = Math.round(ctx.measureText(char).width);
+		fontWidths[t][2] = Math.round(ctx.measureText(char).width);
 	}
 	updateBitmap();
 }
