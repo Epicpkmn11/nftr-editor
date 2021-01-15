@@ -1,7 +1,7 @@
 let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = 0;
 let maxChar = 0;
-let palette = [[0, 0, 0, 0], [0x28, 0x28, 0x28, 0xFF], [0x90, 0x90, 0x90, 0xFF], [0xD7, 0xD7, 0xD7, 0xFF]];
-let paletteHTML = ["", "#282828", "#909090", "#D7D7D7"];
+let palette = [[0, 0, 0, 0], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
+let paletteHTML = ["", "#929292", "#434343", "#000000"];
 let data, fontU8, fileName;
 let brushColor = 0, realColor = 0;
 
@@ -140,7 +140,7 @@ function saveFont() {
 	// Copy glyphs back in
 	let offset = data.getUint32(0x20, true) + 8;
 	for(let i = 0; i < fontTiles.length; i++) {
-		fontU8.set(fontTiles[i], offset + (i * fontTiles[0].length));
+		fontU8.set(fontTiles[i], offset + (i * tileSize));
 	}
 
 	// Copy widths back in
@@ -1024,6 +1024,127 @@ class CharMap2 {
 		this.get().forEach(r => str += pad(r, 2, 16));
 		return str;
 	}
+}
+
+function resize(width, height) {
+	if(typeof(width) != "number")
+		width = parseInt(width);
+	if(typeof(height) != "number")
+		height = parseInt(height);
+
+	if(isNaN(width) || isNaN(height))
+		return alert("Please enter two numbers!");
+
+	let oldTileWidth = tileWidth, oldTileHeight = tileHeight, oldTileSize = tileSize;
+	tileWidth = width;
+	tileHeight = height;
+	tileSize = Math.floor((tileWidth * tileHeight * 2 + 7) / 8);
+	tileSize += (4 - tileSize % 4) % 4;
+
+	let decreaseAmount = (oldTileSize - tileSize) * fontTiles.length;
+
+	// Change font info sizes
+	data.setUint8(0x19, tileHeight);
+	data.setUint8(0x1D, tileWidth);
+	data.setUint8(0x1E, tileWidth);
+	if(data.getUint32(0x14, true) == 0x20) {
+		data.setUint8(0x2C, tileHeight);
+		data.setUint8(0x2D, tileWidth);
+	}
+
+	// Decrease chunk size
+	let offset = 0x14 + data.getUint8(0x14);
+	data.setUint32(offset, data.getUint32(offset, true) - decreaseAmount, true);
+
+	// Change glyph info sizes
+	data.setUint8(offset + 4, tileWidth);
+	data.setUint8(offset + 5, tileHeight);
+	data.setUint16(offset + 6, tileSize, true);
+	data.setUint8(offset + 9, tileWidth + 1);
+
+	// Resize tiles
+	let canvas = document.createElement("canvas");
+	for(let t in fontTiles) {
+		let ctx = canvas.getContext("2d");
+		let scaleCtx = document.createElement("canvas").getContext("2d");
+		scaleCtx.scale(tileWidth / oldTileWidth, tileHeight / oldTileHeight);
+
+		let imgData = ctx.createImageData(oldTileWidth, oldTileHeight);
+
+		// let t = getCharIndex(c);
+		let charImg = new Array(oldTileWidth * oldTileHeight);
+		for(let i = 0; i < oldTileSize; i++) {
+			charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
+			charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
+			charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
+			charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
+		}
+		
+		for(let i = 0; i < imgData.data.length / 4; i++) {
+			imgData.data[i * 4]     = palette[charImg[i]][0];
+			imgData.data[i * 4 + 1] = palette[charImg[i]][1];
+			imgData.data[i * 4 + 2] = palette[charImg[i]][2];
+			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
+		}
+
+		// Scale to new size
+		ctx.putImageData(imgData, 0, 0);
+		scaleCtx.drawImage(canvas, 0, 0);
+		let image = scaleCtx.getImageData(0, 0, tileWidth, tileHeight);
+
+		let newBitmap = [];
+		for(let i = 3; i < image.data.length; i += 4) {
+			let colors = [];
+			colors.push(Math.sqrt(Math.pow(image.data[i] - palette[0][0], 2)));
+			for(let j = 1; j < 4; j++) {
+				colors.push(Math.sqrt(Math.pow(image.data[i] - (255 - palette[j][0]), 2)));
+			}
+			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+		}
+
+		fontTiles[t] = new Uint8Array(tileSize);
+
+		for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+			let byte = 0;
+			byte |= (newBitmap[i]     & 3) << 6;
+			byte |= (newBitmap[i + 1] & 3) << 4;
+			byte |= (newBitmap[i + 2] & 3) << 2;
+			byte |= (newBitmap[i + 3] & 3) << 0;
+
+			fontTiles[t][i / 4] = byte;
+		}
+	}
+
+	// Scale widths
+	for(let i in fontWidths) {
+		for(let j in fontWidths[i]) {
+			fontWidths[i][j] = Math.round(fontWidths[i][j] * tileWidth / oldTileWidth);
+		}
+	}
+
+	// Reduce offsets
+	let locHDWC = data.getUint32(0x24, true) - decreaseAmount;
+	data.setUint32(0x24, locHDWC, true);
+	let locPAMC = 0x28 - 8;
+	while(locPAMC < fontU8.length && locPAMC != 0) {
+		let old = data.getUint32(locPAMC + 8, true);
+		if(old == 0)
+			break;
+		data.setUint32(locPAMC + 8, old - decreaseAmount, true);
+		locPAMC = old;
+	}
+
+	// Remove unused section
+	let newFile = new Uint8Array(fontU8.length - decreaseAmount);
+	newFile.set(fontU8.subarray(0, locHDWC - 8), 0);
+	newFile.set(fontU8.subarray(locHDWC + decreaseAmount - 8), locHDWC - 8);
+	fontU8 = newFile;
+	data = new DataView(fontU8.buffer);
+
+	// Change the font size of the input box
+	document.getElementById("input").style.fontSize = tileWidth + "px";
+
+	updateBitmap();
 }
 
 // Remove a specific broken character
