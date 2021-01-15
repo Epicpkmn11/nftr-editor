@@ -1028,9 +1028,9 @@ class CharMap2 {
 
 function resize(width, height) {
 	if(typeof(width) != "number")
-		width = parseInt(width);
+		width = parseInt(prompt('Enter the new width:', tileWidth));
 	if(typeof(height) != "number")
-		height = parseInt(height);
+		height = parseInt(prompt('Enter the new height:', tileHeight));
 
 	if(isNaN(width) || isNaN(height))
 		return alert("Please enter two numbers!");
