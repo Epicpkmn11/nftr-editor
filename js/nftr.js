@@ -450,7 +450,7 @@ function addCharacters() {
 	for(let i in str) {
 		if(str[i] != str[i-1]
 		&& getCharIndex(str[i]) == questionMark
-		&& ((char[0] != "�" && str[i] != "?") || questionMark == 0)
+		&& ((str[i] != "�" && str[i] != "?") || questionMark == 0)
 		&& str.charCodeAt(i) <= 0xFFFF
 		&& str.charAt(i) != '\n'
 		&& str.charAt(i) != '\t') {
@@ -542,7 +542,7 @@ function removeCharacters() {
 	let chars = [], indexes = [];
 	for(let i in str) {
 		if(str[i] != str[i - 1]
-		&& (getCharIndex(str[i]) != questionMark || char[0] != "�" && str[i] == "?")
+		&& (getCharIndex(str[i]) != questionMark || str[i] != "�" && str[i] == "?")
 		&& str.charCodeAt(i) <= 0xFFFF
 		&& str.charAt(i) != '\n') {
 			chars.push(str.charCodeAt(i));
