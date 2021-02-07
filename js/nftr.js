@@ -3,7 +3,7 @@ let maxChar = 0;
 let palette = [[0, 0, 0, 0], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
 let paletteHTML = ["", "#929292", "#434343", "#000000"];
 let data, fontU8, fileName;
-let brushColor = 0, realColor = 0;
+let brushColor = 0, realColor = 0, extraKerning = 0;
 
 var onkeydown, onkeyup;
 
@@ -231,7 +231,7 @@ function updateBitmap() {
 			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
 		}
 
-		let width = bytesPerWidth == 3 ? fontWidths[t][2] : fontWidths[t][0] + fontWidths[t][1];
+		let width = (bytesPerWidth == 3 ? fontWidths[t][2] : fontWidths[t][0] + fontWidths[t][1]) + extraKerning;
 		if(x + width > canvas.width) {
 			y += tileHeight;
 			x = 0;
@@ -1260,4 +1260,10 @@ function rmAt(index) {
 	// Decrease max character
 	data.setUint16(newLocHDWC + 2, newData.getUint16(newLocHDWC + 2, true) - chars.length, true);
 	reloadFont(fontU8.buffer);
+}
+
+function updateExtraKerning(event) {
+	extraKerning = parseInt(document.getElementById("extraKerning").value) || 0;
+	
+	updateBitmap();
 }
