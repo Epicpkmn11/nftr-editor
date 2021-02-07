@@ -1,4 +1,4 @@
-let tileWidth, tileHeight, tileSize, fontTiles, fontWidths, fontMap, questionMark = 0;
+let encoding, tileWidth, tileHeight, tileSize, tileBitDepth, fontTiles, fontWidths, bytesPerWidth, fontMap, questionMark = 0;
 let maxChar = 0;
 let palette = [[0, 0, 0, 0], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
 let paletteHTML = ["", "#929292", "#434343", "#000000"];
@@ -30,6 +30,9 @@ function reloadFont(buffer) {
 	data = new DataView(fontU8.buffer);
 	let offset = 0x14;
 
+	// Get encoding
+	encoding = data.getUint8(0x1F);
+
 	// Skip font info
 	offset += data.getUint8(0x14);
 
@@ -40,10 +43,12 @@ function reloadFont(buffer) {
 	tileHeight = data.getUint8(offset++);
 	tileSize = data.getUint16(offset, true);
 	offset += 2;
+	offset += 2; // skip underline and max proportional width
+	tileBitDepth = data.getUint8(offset++);
 
 	// Load character glyphs
 	let tileAmount = ((chunkSize - 0x10) / tileSize);
-	offset += 4;
+	offset++;
 	fontTiles = [];
 	for(let i = 0; i < tileAmount; i++) {
 		fontTiles.push(new Uint8Array(buffer.slice(offset + (i * tileSize), offset + ((i + 1) * tileSize))));
@@ -65,8 +70,10 @@ function reloadFont(buffer) {
 	maxChar = charCount;
 	offset += 2 + 4;
 	fontWidths = [];
+	// Some fonts don't have the total size
+	bytesPerWidth = Math.floor(chunkSize / tileAmount);
 	for(let i = 0; i < tileAmount; i++) {
-		fontWidths.push(new Uint8Array(buffer.slice(offset + (i * 3), offset + ((i + 1) * 3))));
+		fontWidths.push(new Uint8Array(buffer.slice(offset + (i * bytesPerWidth), offset + ((i + 1) * bytesPerWidth))));
 	}
 
 	// Load character maps
@@ -161,6 +168,16 @@ function saveFont() {
 
 function getCharIndex(c) {
 	let char = typeof(c) == "string" ? c.charCodeAt(0) : c;
+
+	// If not unicode, convert to shift-jis
+	if(encoding != 1) {
+		let array = Encoding.convert([char], "SJIS");
+		char = 0;
+		for(let i = 0; i < array.length; i++) {
+			char |= array[i] << (8 * (array.length - 1 - i));
+		}
+	}
+
 	// Try a binary search
 	let left = 0;
 	let right = fontMap.length;
@@ -202,10 +219,9 @@ function updateBitmap() {
 		let t = getCharIndex(c);
 		let charImg = new Array(tileHeight * tileWidth);
 		for(let i = 0; i < tileSize; i++) {
-			charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
-			charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
-			charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
-			charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
+			for(let j = 0; j < 8 / tileBitDepth; j++) {
+				charImg[(i * 8 / tileBitDepth) + j] = (fontTiles[t][i] >> (8 - tileBitDepth) - j * tileBitDepth) & ((1 << tileBitDepth) - 1);
+			}
 		}
 
 		for(let i = 0; i < imgData.data.length / 4; i++) {
@@ -215,12 +231,13 @@ function updateBitmap() {
 			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
 		}
 
-		if(x + fontWidths[t][2] > canvas.width) {
+		let width = bytesPerWidth == 3 ? fontWidths[t][2] : fontWidths[t][0] + fontWidths[t][1];
+		if(x + width > canvas.width) {
 			y += tileHeight;
 			x = 0;
 		}
 		ctx.putImageData(imgData, x + fontWidths[t][0], y);
-		x += fontWidths[t][2];
+		x += width;
 	}
 }
 
@@ -267,10 +284,9 @@ function loadLetter() {
 	}
 	let charImg = new Array(tileHeight * tileWidth);
 	for(let i = 0; i < tileSize; i++) {
-		charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
-		charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
-		charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
-		charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
+		for(let j = 0; j < 8 / tileBitDepth; j++) {
+			charImg[(i * 8 / tileBitDepth) + j] = (fontTiles[t][i] >> (8 - tileBitDepth) - j * tileBitDepth) & ((1 << tileBitDepth) - 1);
+		}
 	}
 
 	document.getElementById("letter").innerHTML = "";
@@ -435,7 +451,7 @@ function amountToIncrease(increaseAmount, tiles, widths) {
 	}
 
 	if(widths) {
-		out += increaseAmount * 3;
+		out += increaseAmount * bytesPerWidth;
 		while(out % 4)	out++;
 	}
 
@@ -528,7 +544,7 @@ function amountToDecrease(decreaseAmount, tiles, widths) {
 	}
 
 	if(widths) {
-		out += decreaseAmount * 3;
+		out += decreaseAmount * bytesPerWidth;
 		while(out % 4)	out++;
 	}
 
@@ -587,7 +603,7 @@ function removeCharacters() {
 	// Copy widths
 	for(let i = 0, o = 0; i < fontWidths.length; i++) {
 		if(!indexes.find(r => r == i)) {
-			newFile.set(fontU8.subarray(locHDWC + 8 + (i * 3), locHDWC + 8 + ((i + 1) * 3)), newLocHDWC + 8 + (o++ * 3));
+			newFile.set(fontU8.subarray(locHDWC + 8 + (i * bytesPerWidth), locHDWC + 8 + ((i + 1) * bytesPerWidth)), newLocHDWC + 8 + (o++ * bytesPerWidth));
 		}
 	}
 
@@ -707,10 +723,9 @@ function exportImage() {
 
 		let charImg = new Array(tileHeight * tileWidth);
 		for(let i = 0; i < tileSize; i++) {
-			charImg[(i * 4)]     = (fontTiles[c][i] >> 6 & 3);
-			charImg[(i * 4) + 1] = (fontTiles[c][i] >> 4 & 3);
-			charImg[(i * 4) + 2] = (fontTiles[c][i] >> 2 & 3);
-			charImg[(i * 4) + 3] = (fontTiles[c][i]      & 3);
+			for(let j = 0; j < 8 / tileBitDepth; j++) {
+				charImg[(i * 8 / tileBitDepth) + j] = (fontTiles[c][i] >> (8 - tileBitDepth) - j * tileBitDepth) & ((1 << tileBitDepth) - 1);
+			}
 		}
 
 		for(let i = 0; i < imgData.data.length / 4; i++) {
@@ -792,13 +807,29 @@ function importImage(file) {
 function exportSizes() {
 	let out = [];
 	for(let c of fontMap) {
+		// If not unicode, convert from shift-jis
+		if(encoding != 1) {
+			let array = [];
+			do {
+				array.push(c & 0xFF);
+				c = c >> 8;
+			} while(c > 0);
+			array.reverse();
+			c = Encoding.convert(array, "UNICODE", "SJIS")[0];
+		}
+
 		c = String.fromCharCode(c);
+
 		let i = getCharIndex(c);
-		out.push({
+		out.push(bytesPerWidth == 3 ? {
 			"char": c,
 			"left spacing": fontWidths[i][0],
 			"bitmap width": fontWidths[i][1],
 			"total width": fontWidths[i][2]
+		} : {
+			"char": c,
+			"left spacing": fontWidths[i][0],
+			"bitmap width": fontWidths[i][1]
 		});
 	}
 
@@ -862,7 +893,7 @@ function sortMaps() {
 	}
 	offset = data.getUint32(0x24, true) + 8;
 	for(let i = 0; i < fontWidths.length; i++) {
-		fontU8.set(fontWidths[i], offset + (i * 3));
+		fontU8.set(fontWidths[i], offset + (i * bytesPerWidth));
 	}
 }
 
