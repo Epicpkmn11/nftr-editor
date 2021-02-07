@@ -166,11 +166,11 @@ function saveFont() {
 	window.URL.revokeObjectURL(url);
 }
 
-function getCharIndex(c) {
+function getCharIndex(c, ignoreEncoding = false) {
 	let char = typeof(c) == "string" ? c.charCodeAt(0) : c;
 
 	// If not unicode, convert to shift-jis
-	if(encoding != 1) {
+	if(!ignoreEncoding && encoding != 1) {
 		let array = Encoding.convert([char], "SJIS");
 		char = 0;
 		for(let i = 0; i < array.length; i++) {
@@ -274,7 +274,12 @@ function clearPalette(i) {
 
 function loadLetter() {
 	let char = document.getElementById("letterInput").value;
-	let t = getCharIndex(char);
+	let t = 0;
+	if(char.search(/0x[0-9a-f]+/i) == 0) {
+		t = getCharIndex(parseInt(char), true);
+	} else {
+		t = getCharIndex(char);
+	}
 	if(t == questionMark && char[0] != "�" && char[0] != "?") {
 		document.getElementById("letter").innerHTML = "";
 		document.getElementById("left").value = 0;
@@ -807,6 +812,7 @@ function importImage(file) {
 function exportSizes() {
 	let out = [];
 	for(let c of fontMap) {
+		let orig = c;
 		// If not unicode, convert from shift-jis
 		if(encoding != 1) {
 			let array = [];
@@ -822,12 +828,12 @@ function exportSizes() {
 
 		let i = getCharIndex(c);
 		out.push(bytesPerWidth == 3 ? {
-			"char": c,
+			"char": (c == "?" && c.charCodeAt(0) != orig) ? `0x${orig.toString(16).padStart(4, "0")} (Shift-JIS)` : c,
 			"left spacing": fontWidths[i][0],
 			"bitmap width": fontWidths[i][1],
 			"total width": fontWidths[i][2]
 		} : {
-			"char": c,
+			"char": (c == "?" && c.charCodeAt(0) != orig) ? `0x${orig.toString(16).padStart(4, "0")} (Shift-JIS)` : c,
 			"left spacing": fontWidths[i][0],
 			"bitmap width": fontWidths[i][1]
 		});
