@@ -479,6 +479,8 @@ function addCharacters() {
 		}
 	}
 
+	console.log("Adding:", chars);
+
 	let length = fontU8.length + amountToIncrease(chars.length, true, true);
 
 	let newFile = new Uint8Array(length);
