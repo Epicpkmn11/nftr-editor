@@ -789,11 +789,14 @@ function importImage(file) {
 
 				let newBitmap = [];
 				for(let i = 0; i < image.data.length; i += 4) {
-					let colors = [];
-					for(let j = 0; j < 4; j++) {
-						colors.push(Math.sqrt(Math.pow(image.data[i] - palette[j][0], 2)));
-					}
-					newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+					newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
+						cres = 0, pres = 0;
+						for(let j = 0; j < palette.length; j++) {
+							cres += Math.abs(image.data[i + j] - cur[j]);
+							pres += Math.abs(image.data[i + j] - prev[j]);
+						}
+						return cres / palette.length < pres / palette.length ? cur : prev;
+					})));
 				}
 
 				for(let i = 0; i < tileWidth * tileHeight; i += 4) {
