@@ -82,8 +82,8 @@ show_version: true
 									<br>
 									<button class="btn btn-outline-secondary" type="button" onclick="generateFromFont()">Generate from font</button>
 									<br>
-									<label for="maxDifference"><abbr title="The maximum amount a pixel can be from the set color and still be set to it. Set to 0 for unlimited. Lower numbers make the font thinner.">Maximum difference</abbr></label>
-									<input class="form-control bg-light text-dark" id="maxDifference" type="number" placeholder="0">
+									<label for="maxDifference"><abbr title="The maximum amount a pixel can be from the set color and still be set to it. Set to 0 for unlimited. Lower numbers make the font thinner.">Threshold</abbr></label>
+									<input class="form-control bg-light text-dark" id="maxDifference" type="number" placeholder="0" min="0" max="255">
 								</div>
 							</div>
 						</div>
