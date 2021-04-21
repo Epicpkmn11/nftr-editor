@@ -4,6 +4,7 @@ canvas {
 }
 
 textarea {
+	background-color: white;
 	border: 1px solid gray;
 	width: 302px;
 	height: 152px;
