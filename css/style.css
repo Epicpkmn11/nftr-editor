@@ -1,11 +1,11 @@
 canvas {
+	background-color: var(--textarea-bg);
 	border: 1px solid gray;
-	background-color: white;
 }
 
 textarea {
-	background-color: white;
-	color: black;
+	background-color: var(--textarea-bg);
+	color: var(--textarea-color);
 	border: 1px solid gray;
 	width: 302px;
 	height: 152px;
@@ -13,10 +13,10 @@ textarea {
 }
 
 table {
+	background-color: var(--textarea-bg);
 	border-collapse: collapse;
 	border: 1px solid black;
 	cursor: crosshair;
-	background-color: white;
 }
 
 table:active {
