@@ -158,7 +158,7 @@ function saveFont() {
 
 	// Download the file
 	let blob = new Blob([fontU8], {type: "application/octet-stream"});
-	let a = document.createElement('a');
+	let a = document.createElement("a");
 	let url = window.URL.createObjectURL(blob);
 	a.href = url;
 	a.download = fileName;
@@ -677,13 +677,15 @@ function generateFromFont() {
 		let image = ctx.getImageData(0, 0, tileWidth, tileHeight);
 
 		let newBitmap = [];
-		for(let i = 3; i < image.data.length; i += 4) {
-			let colors = [];
-			colors.push(Math.sqrt(Math.pow(image.data[i] - palette[0][0], 2)));
-			for(let j = 1; j < 4; j++) {
-				colors.push(Math.sqrt(Math.pow(image.data[i] - (255 - palette[j][0]), 2)));
-			}
-			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+		for(let i = 0; i < image.data.length; i += 4) {
+			newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
+				cres = 0, pres = 0;
+				for(let j = 0; j < palette.length; j++) {
+					cres += Math.abs(image.data[i + j] - cur[j]);
+					pres += Math.abs(image.data[i + j] - prev[j]);
+				}
+				return cres / palette.length < pres / palette.length ? cur : prev;
+			})));
 		}
 		let t = getCharIndex(char);
 		if(t == questionMark && char[0] != "�" && char != "?")	continue;
