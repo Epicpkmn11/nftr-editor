@@ -1067,9 +1067,9 @@ class CharMap2 {
 
 function resize(width, height) {
 	if(typeof(width) != "number")
-		width = parseInt(prompt('Enter the new width:', tileWidth));
+		width = parseInt(prompt("Enter the new width:", tileWidth));
 	if(typeof(height) != "number")
-		height = parseInt(prompt('Enter the new height:', tileHeight));
+		height = parseInt(prompt("Enter the new height:", tileHeight));
 
 	if(isNaN(width) || isNaN(height))
 		return alert("Please enter two numbers!");
@@ -1102,59 +1102,70 @@ function resize(width, height) {
 	data.setUint8(offset + 9, tileWidth + 1);
 
 	// Resize tiles
-	let canvas = document.createElement("canvas");
-	for(let t in fontTiles) {
-		let ctx = canvas.getContext("2d");
-		let scaleCtx = document.createElement("canvas").getContext("2d");
-		scaleCtx.scale(tileWidth / oldTileWidth, tileHeight / oldTileHeight);
+	if(confirm("Scale the text?")) {
+		let canvas = document.createElement("canvas");
+		for(let t in fontTiles) {
+			let ctx = canvas.getContext("2d");
+			let scaleCtx = document.createElement("canvas").getContext("2d");
+			scaleCtx.scale(tileWidth / oldTileWidth, tileHeight / oldTileHeight);
 
-		let imgData = ctx.createImageData(oldTileWidth, oldTileHeight);
+			let imgData = ctx.createImageData(oldTileWidth, oldTileHeight);
 
-		// let t = getCharIndex(c);
-		let charImg = new Array(oldTileWidth * oldTileHeight);
-		for(let i = 0; i < oldTileSize; i++) {
-			charImg[(i * 4)]     = (fontTiles[t][i] >> 6 & 3);
-			charImg[(i * 4) + 1] = (fontTiles[t][i] >> 4 & 3);
-			charImg[(i * 4) + 2] = (fontTiles[t][i] >> 2 & 3);
-			charImg[(i * 4) + 3] = (fontTiles[t][i]      & 3);
+			let charImg = new Array(oldTileWidth * oldTileHeight);
+			for(let i = 0; i < oldTileSize; i++) {
+				for(let j = 0; j < 8 / tileBitDepth; j++) {
+					charImg[(i * 8 / tileBitDepth) + j] = (fontTiles[t][i] >> (8 - tileBitDepth) - j * tileBitDepth) & ((1 << tileBitDepth) - 1);
+				}
+			}
+			
+			for(let i = 0; i < imgData.data.length / 4; i++) {
+				imgData.data[i * 4]     = palette[charImg[i]][0];
+				imgData.data[i * 4 + 1] = palette[charImg[i]][1];
+				imgData.data[i * 4 + 2] = palette[charImg[i]][2];
+				imgData.data[i * 4 + 3] = palette[charImg[i]][3];
+			}
+
+			// Scale to new size
+			ctx.putImageData(imgData, 0, 0);
+			scaleCtx.drawImage(canvas, 0, 0);
+			let image = scaleCtx.getImageData(0, 0, tileWidth, tileHeight);
+
+			let newBitmap = [];
+			for(let i = 0; i < image.data.length; i += 4) {
+				newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
+					return Math.abs((0xFF - image.data[i + 3]) - cur[0]) < Math.abs((0xFF - image.data[i + 3]) - prev[0]) ? cur : prev;
+				})));
+			}
+
+			fontTiles[t] = new Uint8Array(tileSize);
+
+			for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+				let byte = 0;
+				byte |= (newBitmap[i]     & 3) << 6;
+				byte |= (newBitmap[i + 1] & 3) << 4;
+				byte |= (newBitmap[i + 2] & 3) << 2;
+				byte |= (newBitmap[i + 3] & 3) << 0;
+
+				fontTiles[t][i / 4] = byte;
+			}
 		}
-		
-		for(let i = 0; i < imgData.data.length / 4; i++) {
-			imgData.data[i * 4]     = palette[charImg[i]][0];
-			imgData.data[i * 4 + 1] = palette[charImg[i]][1];
-			imgData.data[i * 4 + 2] = palette[charImg[i]][2];
-			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
+
+		// Scale widths
+		for(let i in fontWidths) {
+			for(let j in fontWidths[i]) {
+				fontWidths[i][j] = Math.round(fontWidths[i][j] * tileWidth / oldTileWidth);
+			}
 		}
-
-		// Scale to new size
-		ctx.putImageData(imgData, 0, 0);
-		scaleCtx.drawImage(canvas, 0, 0);
-		let image = scaleCtx.getImageData(0, 0, tileWidth, tileHeight);
-
-		let newBitmap = [];
-		for(let i = 0; i < image.data.length; i += 4) {
-			newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
-				return Math.abs((0xFF - image.data[i + 3]) - cur[0]) < Math.abs((0xFF - image.data[i + 3]) - prev[0]) ? cur : prev;
-			})));
-		}
-
-		fontTiles[t] = new Uint8Array(tileSize);
-
-		for(let i = 0; i < tileWidth * tileHeight; i += 4) {
-			let byte = 0;
-			byte |= (newBitmap[i]     & 3) << 6;
-			byte |= (newBitmap[i + 1] & 3) << 4;
-			byte |= (newBitmap[i + 2] & 3) << 2;
-			byte |= (newBitmap[i + 3] & 3) << 0;
-
-			fontTiles[t][i / 4] = byte;
-		}
-	}
-
-	// Scale widths
-	for(let i in fontWidths) {
-		for(let j in fontWidths[i]) {
-			fontWidths[i][j] = Math.round(fontWidths[i][j] * tileWidth / oldTileWidth);
+	} else {
+		for(let t in fontTiles) {
+			let tile = new Uint8Array(tileSize);
+			for(let y = 0; y < oldTileHeight; y++) {
+				for(let x = 0; x < oldTileWidth; x++) {
+					let px = (fontTiles[t][Math.floor((y * oldTileWidth + x) / (8 / tileBitDepth))] >> (8 - tileBitDepth) - ((y * oldTileWidth + x) % (8 / tileBitDepth)) * tileBitDepth) & ((1 << tileBitDepth) - 1);
+					tile[Math.floor((y * tileWidth + x) / (8 / tileBitDepth))] = (tile[Math.floor((y * tileWidth + x) / (8 / tileBitDepth))] & ~(((1 << tileBitDepth) - 1) << (8 - tileBitDepth) - ((y * tileWidth + x) % (8 / tileBitDepth)) * tileBitDepth)) | (px << (8 - tileBitDepth) - ((y * tileWidth + x) % (8 / tileBitDepth)) * tileBitDepth);
+				}
+			}
+			fontTiles[t] = tile;
 		}
 	}
 
