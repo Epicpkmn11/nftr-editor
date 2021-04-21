@@ -1,6 +1,6 @@
 let encoding, tileWidth, tileHeight, tileSize, tileBitDepth, fontTiles, fontWidths, bytesPerWidth, fontMap, questionMark = 0;
 let maxChar = 0;
-let palette = [[0, 0, 0, 0], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
+let palette = [[0xFF, 0xFF, 0xFF, 0x00], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
 let paletteHTML = ["", "#929292", "#434343", "#000000"];
 let data, fontU8, fileName;
 let brushColor = 0, realColor = 0, extraKerning = 0;
@@ -244,7 +244,7 @@ function updateBitmap() {
 function updatePalette(i) {
 	let color = document.getElementById("palette" + i).value;
 	if(color.toUpperCase() == "#FF00FF") {
-		palette[i] = [0, 0, 0, 0];
+		palette[i] = [0xFF, 0xFF, 0xFF, 0x00];
 		paletteHTML[i] = "";
 	} else {
 		let r = parseInt(color.substr(1, 2), 16);
@@ -679,12 +679,7 @@ function generateFromFont() {
 		let newBitmap = [];
 		for(let i = 0; i < image.data.length; i += 4) {
 			newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
-				cres = 0, pres = 0;
-				for(let j = 0; j < palette.length; j++) {
-					cres += Math.abs(image.data[i + j] - cur[j]);
-					pres += Math.abs(image.data[i + j] - prev[j]);
-				}
-				return cres / palette.length < pres / palette.length ? cur : prev;
+				return Math.abs((0xFF - image.data[i + 3]) - cur[0]) < Math.abs((0xFF - image.data[i + 3]) - prev[0]) ? cur : prev;
 			})));
 		}
 		let t = getCharIndex(char);
@@ -1137,13 +1132,10 @@ function resize(width, height) {
 		let image = scaleCtx.getImageData(0, 0, tileWidth, tileHeight);
 
 		let newBitmap = [];
-		for(let i = 3; i < image.data.length; i += 4) {
-			let colors = [];
-			colors.push(Math.sqrt(Math.pow(image.data[i] - palette[0][0], 2)));
-			for(let j = 1; j < 4; j++) {
-				colors.push(Math.sqrt(Math.pow(image.data[i] - (255 - palette[j][0]), 2)));
-			}
-			newBitmap.push(colors.indexOf(Math.min.apply(0, colors)));
+		for(let i = 0; i < image.data.length; i += 4) {
+			newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
+				return Math.abs((0xFF - image.data[i + 3]) - cur[0]) < Math.abs((0xFF - image.data[i + 3]) - prev[0]) ? cur : prev;
+			})));
 		}
 
 		fontTiles[t] = new Uint8Array(tileSize);
