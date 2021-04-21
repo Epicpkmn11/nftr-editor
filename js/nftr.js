@@ -666,6 +666,10 @@ function generateFromFont() {
 		font = "Sans-Serif";
 	ctx.font = bold + italic + tileWidth + "px " + font;
 
+	let maxDifference = document.getElementById("maxDifference").value;
+	if(maxDifference == 0)
+		maxDifference = Infinity;
+
 	for(let i in fontMap) {
 		if((!regen && !fontTiles[i].every(function(x) { return x == fontTiles[i][0]; }))
 		 || (!regenButtons && fontMap[i] >= 0xE000 && fontMap[i] <= 0xE07E))
@@ -679,6 +683,8 @@ function generateFromFont() {
 		let newBitmap = [];
 		for(let i = 0; i < image.data.length; i += 4) {
 			newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
+				if(Math.abs((0xFF - image.data[i + 3]) - cur[0]) > maxDifference)
+					return prev;
 				return Math.abs((0xFF - image.data[i + 3]) - cur[0]) < Math.abs((0xFF - image.data[i + 3]) - prev[0]) ? cur : prev;
 			})));
 		}
