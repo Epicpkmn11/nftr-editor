@@ -1,4 +1,4 @@
-let encoding, tileWidth, tileHeight, tileSize, tileBitDepth, fontTiles, fontWidths, bytesPerWidth, fontMap, questionMark = 0;
+let encoding, tileWidth, tileHeight, tileSize, tileBitDepth, fontTiles, fontWidths, bytesPerWidth, fontMap, questionMark = 0, questionMarkChar = "";
 let maxChar = 0;
 let palette = [[0xFF, 0xFF, 0xFF, 0x00], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
 let paletteHTML = ["", "#929292", "#434343", "#000000"];
@@ -137,9 +137,12 @@ function reloadFont(buffer) {
 	window.onbeforeunload = function() { return "Are you sure you want to leave? Unsaved data will be lost!"; };
 
 	questionMark = 0;
+	questionMarkChar = "�";
 	questionMark = getCharIndex("�");
-	if(questionMark == 0)
+	if(questionMark == 0) {
+		questionMarkChar = "?";
 		questionMark = getCharIndex("?");
+	}
 	updateBitmap();
 }
 
@@ -471,7 +474,7 @@ function addCharacters() {
 	for(let i in str) {
 		if(str[i] != str[i-1]
 		&& getCharIndex(str[i]) == questionMark
-		&& ((str[i] != "�" && str[i] != "?") || questionMark == 0)
+		&& (str[i] != questionMarkChar)
 		&& str.charCodeAt(i) <= 0xFFFF
 		&& str.charAt(i) != '\n'
 		&& str.charAt(i) != '\t') {
@@ -702,8 +705,8 @@ function generateFromFont() {
 		}
 
 		fontWidths[t][0] = 0;
-		fontWidths[t][1] = Math.round(ctx.measureText(char).width);
-		fontWidths[t][2] = Math.round(ctx.measureText(char).width);
+		fontWidths[t][1] = Math.min(Math.round(ctx.measureText(char).width), tileWidth);
+		fontWidths[t][2] = fontWidths[t][1];
 	}
 	updateBitmap();
 }
