@@ -71,7 +71,7 @@ function reloadFont(buffer) {
 	offset += 2 + 4;
 	fontWidths = [];
 	// Some fonts don't have the total size
-	bytesPerWidth = Math.floor(chunkSize / tileAmount);
+	bytesPerWidth = Math.min(3, Math.floor((chunkSize - 0x10) / tileAmount));
 	for(let i = 0; i < tileAmount; i++) {
 		fontWidths.push(new Uint8Array(buffer.slice(offset + (i * bytesPerWidth), offset + ((i + 1) * bytesPerWidth))));
 	}
