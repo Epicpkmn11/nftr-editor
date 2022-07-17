@@ -801,14 +801,13 @@ function importImage(file) {
 					})));
 				}
 
-				for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+				for(let i = 0; i < tileWidth * tileHeight; i += (8 / tileBitDepth)) {
 					let byte = 0;
-					byte |= (newBitmap[i]     & 3) << 6;
-					byte |= (newBitmap[i + 1] & 3) << 4;
-					byte |= (newBitmap[i + 2] & 3) << 2;
-					byte |= (newBitmap[i + 3] & 3) << 0;
-
-					fontTiles[c][i / 4] = byte;
+					for(let j = 0; j < (8 / tileBitDepth); j++) {
+						byte |= (newBitmap[i + j] & ((1 << tileBitDepth) - 1)) << (8 - (tileBitDepth * (j + 1)));
+					}
+			
+					fontTiles[c][i / (8 / tileBitDepth)] = byte;
 				}
 			}
 			updateBitmap();
