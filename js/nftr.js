@@ -429,18 +429,14 @@ function saveLetter() {
 
 	if(t == questionMark && char[0] != "�" && char[0] != "?")	return;
 
-	for(let i = 0; i < tileWidth * tileHeight; i += 4) {
+	for(let i = 0; i < tileWidth * tileHeight; i += (8 / tileBitDepth)) {
 		let byte = 0;
-		if(document.getElementById("pixel" + i))
-			byte |= (document.getElementById("pixel" + i).classList[0]) << 6;
-		if(document.getElementById("pixel" + (i + 1)))
-			byte |= (document.getElementById("pixel" + (i + 1)).classList[0] & 3) << 4;
-		if(document.getElementById("pixel" + (i + 2)))
-			byte |= (document.getElementById("pixel" + (i + 2)).classList[0] & 3) << 2;
-		if(document.getElementById("pixel" + (i + 3)))
-			byte |= (document.getElementById("pixel" + (i + 3)).classList[0] & 3) << 0;
+		for(let j = 0; j < (8 / tileBitDepth); j++) {
+			if(document.getElementById("pixel" + (i + j)))
+				byte |= (document.getElementById("pixel" + (i + j)).classList[0] & ((1 << tileBitDepth) - 1)) << (8 - (tileBitDepth * (j + 1)));
+		}
 
-		fontTiles[t][i / 4] = byte;
+		fontTiles[t][i / (8 / tileBitDepth)] = byte;
 	}
 
 	fontWidths[t][0] = document.getElementById("left").value;
