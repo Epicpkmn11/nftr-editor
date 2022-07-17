@@ -720,11 +720,18 @@ function updateFont() {
 
 function exportImage() {
 	let columns = parseInt(prompt("How many columns do you want?", "32"));
-	if(isNaN(columns))	return;
+	let padding = parseInt(prompt("How much padding do you want? (in pixels)", "0"));
+	if(isNaN(columns) || isNaN(padding))
+		return;
 
 	let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
-	ctx.canvas.width = tileWidth * columns;
-	ctx.canvas.height = Math.ceil(fontMap.length / columns) * tileHeight;
+	ctx.canvas.width = (tileWidth + padding) * columns - padding;
+	ctx.canvas.height = (tileHeight + padding) * Math.ceil(fontMap.length / columns) - padding;
+
+	ctx.beginPath();
+	ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.fillStyle = "#f2acae";
+	ctx.fill();
 
 	let x = 0, y = 0;
 	for(let c in fontMap) {
@@ -745,9 +752,9 @@ function exportImage() {
 		}
 
 		ctx.putImageData(imgData, x, y);
-		x += tileWidth
+		x += tileWidth + padding;
 		if(x >= ctx.canvas.width) {
-			y += tileHeight;
+			y += tileHeight + padding;
 			x = 0;
 		}
 	}
@@ -770,6 +777,10 @@ function exportImage() {
 }
 
 function importImage(file) {
+	let padding = parseInt(prompt("How much padding was used when exporting? (in pixels)", "0"));
+	if(isNaN(padding))
+		return;
+
 	let reader = new FileReader();
 	reader.readAsDataURL(file);
 
@@ -777,23 +788,31 @@ function importImage(file) {
 		let image = new Image();
 		image.src = this.result;
 		image.onload = function() {
-			let columns = this.width / tileWidth;
+			let columns = (this.width + padding) / (tileWidth + padding);
 			let ctx = document.createElement("canvas").getContext("2d"); // Create canvas context
-			ctx.canvas.width = tileWidth * columns;
-			ctx.canvas.height = Math.ceil(fontMap.length / columns) * tileHeight;
+			ctx.canvas.width = (tileWidth + padding) * columns - padding;
+			ctx.canvas.height = (tileHeight + padding) * Math.ceil(fontMap.length / columns) - padding;
 			ctx.drawImage(this, 0, 0);
 			if(this.width != ctx.canvas.width || this.height != ctx.canvas.height) {
-				alert("Wrong size image!");
+				alert("Wrong image/padding size!");
 				return;
 			}
 			for(let c in fontMap) {
-				let image = ctx.getImageData((c % columns) * tileWidth, Math.floor(c / columns) * tileHeight, tileWidth, tileHeight);
+				let image = ctx.getImageData((c % columns) * (tileWidth + padding), Math.floor(c / columns) * (tileHeight + padding), tileWidth, tileHeight);
 
 				let newBitmap = [];
 				for(let i = 0; i < image.data.length; i += 4) {
 					newBitmap.push(palette.indexOf(palette.reduce((prev, cur) => {
-						cres = 0, pres = 0;
-						for(let j = 0; j < palette.length; j++) {
+						// If transparent, force transparent
+						if(image.data[i + 3] < 255) {
+							if(cur[3] == 0)
+								return cur;
+							else if(prev[3] == 0)
+								return prev;
+						}
+
+						let cres = 0, pres = 0;
+						for(let j = 0; j < 4; j++) {
 							cres += Math.abs(image.data[i + j] - cur[j]);
 							pres += Math.abs(image.data[i + j] - prev[j]);
 						}
