@@ -891,11 +891,7 @@ function sortMaps() {
 	// Split back out
 	for(let i = 0; i < fontMap.length; i++) {
 		fontMap[i] = sorted[i].map;
-	}
-	for(let i = 0; i < fontTiles.length; i++) {
 		fontTiles[i] = sorted[i].tile;
-	}
-	for(let i = 0; i < fontWidths.length; i++) {
 		fontWidths[i] = sorted[i].width;
 	}
 
