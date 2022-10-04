@@ -3,7 +3,7 @@ let maxChar = 0;
 let palette = [[0xFF, 0xFF, 0xFF, 0x00], [0x92, 0x92, 0x92, 0xFF], [0x43, 0x43, 0x43, 0xFF], [0x00, 0x00, 0x00, 0xFF]];
 let paletteHTML = ["", "#929292", "#434343", "#000000"];
 let data, fontU8, fileName;
-let brushColor = 0, realColor = 0, extraKerning = 0;
+let brushColor = 0, realColor = 0, extraKerning = 0, scale = 1;
 
 var onkeydown, onkeyup;
 
@@ -217,7 +217,7 @@ function updateBitmap() {
 			x = 0;
 			continue;
 		}
-		let imgData = ctx.createImageData(tileWidth, tileHeight);
+		let imgData = ctx.createImageData(tileWidth * scale, tileHeight * scale);
 
 		let t = getCharIndex(c);
 		let charImg = new Array(tileHeight * tileWidth);
@@ -227,19 +227,27 @@ function updateBitmap() {
 			}
 		}
 
-		for(let i = 0; i < imgData.data.length / 4; i++) {
-			imgData.data[i * 4]     = palette[charImg[i]][0];
-			imgData.data[i * 4 + 1] = palette[charImg[i]][1];
-			imgData.data[i * 4 + 2] = palette[charImg[i]][2];
-			imgData.data[i * 4 + 3] = palette[charImg[i]][3];
+		for(let y = 0; y < tileHeight; y++) {
+			for(let x = 0; x < tileWidth; x++) {
+				let sPos = y * tileWidth + x;
+				for(let i = 0; i < scale; i++) {
+					let dPos = (y * scale + i) * (tileWidth * scale) + x * scale;
+					for(let j = 0; j < scale; j++) {
+						imgData.data[(dPos + j) * 4]     = palette[charImg[sPos]][0];
+						imgData.data[(dPos + j) * 4 + 1] = palette[charImg[sPos]][1];
+						imgData.data[(dPos + j) * 4 + 2] = palette[charImg[sPos]][2];
+						imgData.data[(dPos + j) * 4 + 3] = palette[charImg[sPos]][3];
+					}
+				}
+			}
 		}
 
-		let width = (bytesPerWidth == 3 ? fontWidths[t][2] : fontWidths[t][0] + fontWidths[t][1]) + extraKerning;
+		let width = ((bytesPerWidth == 3 ? fontWidths[t][2] : fontWidths[t][0] + fontWidths[t][1]) + extraKerning) * scale;
 		if(x + width > canvas.width) {
-			y += tileHeight;
+			y += tileHeight * scale;
 			x = 0;
 		}
-		ctx.putImageData(imgData, x + fontWidths[t][0], y);
+		ctx.putImageData(imgData, x + fontWidths[t][0] * scale, y);
 		x += width;
 	}
 }
@@ -1313,4 +1321,9 @@ function setBg(value) {
 		document.getElementById("canvas").style.backgroundImage = "url(" + value.replace(/[ ()]/g, r => "%" + r.charCodeAt(0).toString(16)) + ")";
 		document.getElementById("bgColor").style.backgroundColor = ""
 	}
+}
+
+function setScale(value) {
+	scale = value | 0;
+	updateBitmap();
 }
