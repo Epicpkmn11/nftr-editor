@@ -1302,3 +1302,15 @@ function updateExtraKerning(event) {
 	
 	updateBitmap();
 }
+
+function setBg(value) {
+	if(value[0] == "#") {
+		document.getElementById("canvas").style.backgroundColor = value;
+		document.getElementById("canvas").style.backgroundImage = "";
+		document.getElementById("bgColor").style.backgroundColor = value
+	} else {
+		document.getElementById("canvas").style.backgroundColor = "";
+		document.getElementById("canvas").style.backgroundImage = "url(" + value.replace(/[ ()]/g, r => "%" + r.charCodeAt(0).toString(16)) + ")";
+		document.getElementById("bgColor").style.backgroundColor = ""
+	}
+}

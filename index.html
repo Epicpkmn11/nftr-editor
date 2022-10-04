@@ -46,7 +46,13 @@ show_version: true
 								<div class="col-sm-6">
 									<textarea id="input" onkeyup="updateBitmap()" placeholder="Type here"></textarea>
 									<br>
-									<canvas id="canvas"></canvas>
+									<canvas id="canvas" width="256" height="192"></canvas>
+									<br>
+									Background color:
+									<input class="btn btn-outline-secondary" id="bgColor" type="color" value="#FF00FF" onchange="setBg(this.value)">
+									<br>
+									Background image:
+									<input class="form-control" id="bgImage" placeholder="https://example.test/background.png" onchange="setBg(this.value)">
 								</div>
 								<div class="col-sm-6">
 									<h3>Palette colors:</h3>
