@@ -213,7 +213,7 @@ function updateBitmap() {
 	let x = 0, y = 0;
 	for(let c of str) {
 		if(c == '\n') {
-			y += tileHeight;
+			y += tileHeight * scale;
 			x = 0;
 			continue;
 		}
