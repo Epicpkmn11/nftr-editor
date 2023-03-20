@@ -159,6 +159,9 @@ function saveFont() {
 		fontU8.set(fontWidths[i], offset + (i * 3));
 	}
 
+	// Update file size
+	data.setUint32(0x8, fontU8.length, true);
+
 	// Download the file
 	let blob = new Blob([fontU8], {type: "application/octet-stream"});
 	let a = document.createElement("a");
